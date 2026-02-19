@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@react-navigation/native';
@@ -56,6 +57,7 @@ export default function ClientDetailScreen() {
   const { id } = useLocalSearchParams();
   const isDark = theme.dark;
   const themeColors = isDark ? colors.dark : colors.light;
+  const { width } = useWindowDimensions();
 
   const [client, setClient] = useState<ClientDetails | null>(null);
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -66,6 +68,9 @@ export default function ClientDetailScreen() {
     message: '',
   });
   const [deleteModal, setDeleteModal] = useState(false);
+
+  const isTablet = width >= 768;
+  const isSplitView = width >= 1024;
 
   const showError = (message: string) => {
     setErrorModal({ visible: true, message });
@@ -81,7 +86,6 @@ export default function ClientDetailScreen() {
       console.log('[API] Fetching client details and programs for id:', id);
       setLoading(true);
 
-      // GET /api/clients/:id → full client profile
       const clientResponse = await fetch(`${BACKEND_URL}/api/clients/${id}`);
       if (!clientResponse.ok) {
         let errMsg = `Failed to load client (${clientResponse.status})`;
@@ -95,7 +99,6 @@ export default function ClientDetailScreen() {
       console.log('[API] Client loaded:', clientData.name);
       setClient(clientData);
 
-      // GET /api/programs/client/:client_id → [{ id, program_name, duration_weeks, split_type, created_at }]
       const programsResponse = await fetch(`${BACKEND_URL}/api/programs/client/${id}`);
       if (!programsResponse.ok) {
         console.warn('[API] Failed to load programs:', programsResponse.status);
@@ -138,7 +141,6 @@ export default function ClientDetailScreen() {
       const result = await response.json();
       console.log('Program generated successfully:', result.program_name);
 
-      // Reload programs list
       await loadClientData();
     } catch (error: any) {
       console.error('Error generating program:', error);
@@ -223,6 +225,10 @@ export default function ClientDetailScreen() {
   const clientGender = client.gender;
   const clientGoals = client.goals;
   const clientExperience = client.experience;
+  const clientHeight = client.height.toString();
+  const clientWeight = client.weight.toString();
+  const trainingFreq = client.trainingFrequency.toString();
+  const sessionDur = client.sessionDuration.toString();
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -243,7 +249,7 @@ export default function ClientDetailScreen() {
               <IconSymbol
                 ios_icon_name="trash"
                 android_material_icon_name="delete"
-                size={22}
+                size={isTablet ? 24 : 22}
                 color={themeColors.error}
               />
             </TouchableOpacity>
@@ -251,7 +257,6 @@ export default function ClientDetailScreen() {
         }}
       />
 
-      {/* Error Modal */}
       <Modal
         visible={errorModal.visible}
         transparent
@@ -289,7 +294,6 @@ export default function ClientDetailScreen() {
         </View>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       <Modal
         visible={deleteModal}
         transparent
@@ -338,151 +342,192 @@ export default function ClientDetailScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isTablet && { paddingHorizontal: spacing.xl, maxWidth: isSplitView ? 1200 : 900, alignSelf: 'center', width: '100%' }
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <LinearGradient
-          colors={[themeColors.card, themeColors.card]}
-          style={[styles.card, { borderColor: themeColors.border }]}
-        >
-          <Text style={[styles.cardTitle, { color: themeColors.text }]}>
-            Client Profile
-          </Text>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>
-              Age:
-            </Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>
-              {clientAge}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>
-              Gender:
-            </Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>
-              {clientGender}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>
-              Goals:
-            </Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>
-              {clientGoals}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>
-              Experience:
-            </Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>
-              {clientExperience}
-            </Text>
-          </View>
-        </LinearGradient>
-
-        <View style={styles.programsSection}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Workout Programs
-          </Text>
-          
-          {programs.length === 0 ? (
+        <View style={isSplitView && { flexDirection: 'row', gap: spacing.lg }}>
+          <View style={isSplitView && { flex: 1 }}>
             <LinearGradient
-              colors={[themeColors.primary + '15', themeColors.secondary + '10']}
-              style={styles.emptyProgramsCard}
+              colors={[themeColors.card, themeColors.card]}
+              style={[styles.card, { borderColor: themeColors.border }]}
             >
-              <View style={[styles.iconCircle, { backgroundColor: themeColors.primary + '30' }]}>
-                <IconSymbol
-                  ios_icon_name="dumbbell"
-                  android_material_icon_name="fitness-center"
-                  size={32}
-                  color={themeColors.primary}
-                />
+              <Text style={[styles.cardTitle, { color: themeColors.text }, isTablet && { fontSize: 24 }]}>
+                Client Profile
+              </Text>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Age:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {clientAge}
+                </Text>
               </View>
-              <Text style={[styles.emptyProgramsText, { color: themeColors.text }]}>
-                No programs yet
-              </Text>
-              <Text style={[styles.emptyProgramsSubtext, { color: themeColors.textSecondary }]}>
-                Generate a personalized workout program with AI
-              </Text>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Gender:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {clientGender}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Height:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {clientHeight} cm
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Weight:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {clientWeight} kg
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Goals:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {clientGoals}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Experience:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {clientExperience}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Training Frequency:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {trainingFreq} days/week
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>
+                  Session Duration:
+                </Text>
+                <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                  {sessionDur} min
+                </Text>
+              </View>
             </LinearGradient>
-          ) : (
-            <View style={styles.programsList}>
-              {programs.map((program, index) => {
-                const programName = program.program_name;
-                const durationText = `${program.duration_weeks} weeks`;
-                const splitType = program.split_type;
-                
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => handleProgramPress(program.id)}
-                    activeOpacity={0.7}
-                  >
-                    <LinearGradient
-                      colors={[themeColors.card, themeColors.card]}
-                      style={[styles.programCard, { borderColor: themeColors.border }]}
+          </View>
+
+          <View style={[styles.programsSection, isSplitView && { flex: 1 }]}>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }, isTablet && { fontSize: 24 }]}>
+              Workout Programs
+            </Text>
+            
+            {programs.length === 0 ? (
+              <LinearGradient
+                colors={[themeColors.primary + '15', themeColors.secondary + '10']}
+                style={styles.emptyProgramsCard}
+              >
+                <View style={[styles.iconCircle, { backgroundColor: themeColors.primary + '30' }]}>
+                  <IconSymbol
+                    ios_icon_name="dumbbell"
+                    android_material_icon_name="fitness-center"
+                    size={isTablet ? 40 : 32}
+                    color={themeColors.primary}
+                  />
+                </View>
+                <Text style={[styles.emptyProgramsText, { color: themeColors.text }, isTablet && { fontSize: 22 }]}>
+                  No programs yet
+                </Text>
+                <Text style={[styles.emptyProgramsSubtext, { color: themeColors.textSecondary }, isTablet && { fontSize: 16 }]}>
+                  Generate a personalized workout program with AI
+                </Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.programsList}>
+                {programs.map((program, index) => {
+                  const programName = program.program_name;
+                  const durationText = `${program.duration_weeks} weeks`;
+                  const splitType = program.split_type;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handleProgramPress(program.id)}
+                      activeOpacity={0.7}
                     >
-                      <View style={styles.programHeader}>
-                        <Text style={[styles.programName, { color: themeColors.text }]}>
-                          {programName}
-                        </Text>
-                        <IconSymbol
-                          ios_icon_name="chevron.right"
-                          android_material_icon_name="chevron-right"
-                          size={20}
-                          color={themeColors.primary}
-                        />
-                      </View>
-                      <View style={styles.programMeta}>
-                        <Text style={[styles.programMetaText, { color: themeColors.textSecondary }]}>
-                          {durationText}
-                        </Text>
-                        <View style={[styles.dot, { backgroundColor: themeColors.textSecondary }]} />
-                        <Text style={[styles.programMetaText, { color: themeColors.textSecondary }]}>
-                          {splitType}
-                        </Text>
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
+                      <LinearGradient
+                        colors={[themeColors.card, themeColors.card]}
+                        style={[styles.programCard, { borderColor: themeColors.border }]}
+                      >
+                        <View style={styles.programHeader}>
+                          <Text style={[styles.programName, { color: themeColors.text }, isTablet && { fontSize: 20 }]}>
+                            {programName}
+                          </Text>
+                          <IconSymbol
+                            ios_icon_name="chevron.right"
+                            android_material_icon_name="chevron-right"
+                            size={isTablet ? 24 : 20}
+                            color={themeColors.primary}
+                          />
+                        </View>
+                        <View style={styles.programMeta}>
+                          <Text style={[styles.programMetaText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
+                            {durationText}
+                          </Text>
+                          <View style={[styles.dot, { backgroundColor: themeColors.textSecondary }]} />
+                          <Text style={[styles.programMetaText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
+                            {splitType}
+                          </Text>
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
 
       <View style={[styles.footer, { backgroundColor: themeColors.background, borderTopColor: themeColors.border }]}>
-        <TouchableOpacity
-          onPress={handleGenerateProgram}
-          disabled={generating}
-          activeOpacity={0.9}
-        >
-          <LinearGradient
-            colors={[themeColors.primary, themeColors.secondary]}
-            style={[styles.generateButton, generating && styles.generateButtonDisabled]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+        <View style={[isTablet && { maxWidth: isSplitView ? 1200 : 900, alignSelf: 'center', width: '100%' }]}>
+          <TouchableOpacity
+            onPress={handleGenerateProgram}
+            disabled={generating}
+            activeOpacity={0.9}
           >
-            {generating ? (
-              <React.Fragment>
-                <ActivityIndicator color="#FFFFFF" style={styles.buttonLoader} />
-                <Text style={styles.generateButtonText}>Generating...</Text>
-              </React.Fragment>
-            ) : (
-              <React.Fragment>
-                <IconSymbol
-                  ios_icon_name="sparkles"
-                  android_material_icon_name="auto-awesome"
-                  size={20}
-                  color="#FFFFFF"
-                />
-                <Text style={styles.generateButtonText}>Generate AI Program</Text>
-              </React.Fragment>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={[themeColors.primary, themeColors.secondary]}
+              style={[styles.generateButton, generating && styles.generateButtonDisabled, isTablet && { height: 64 }]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {generating ? (
+                <React.Fragment>
+                  <ActivityIndicator color="#FFFFFF" style={styles.buttonLoader} />
+                  <Text style={[styles.generateButtonText, isTablet && { fontSize: 20 }]}>Generating...</Text>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <IconSymbol
+                    ios_icon_name="sparkles"
+                    android_material_icon_name="auto-awesome"
+                    size={isTablet ? 24 : 20}
+                    color="#FFFFFF"
+                  />
+                  <Text style={[styles.generateButtonText, isTablet && { fontSize: 20 }]}>Generate AI Program</Text>
+                </React.Fragment>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@react-navigation/native';
@@ -56,6 +57,7 @@ export default function ProgramDetailScreen() {
   const router = useRouter();
   const isDark = theme.dark;
   const themeColors = isDark ? colors.dark : colors.light;
+  const { width } = useWindowDimensions();
 
   const [program, setProgram] = useState<ProgramDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,9 @@ export default function ProgramDetailScreen() {
   });
   const [deleteModal, setDeleteModal] = useState(false);
   const [expandedWeek, setExpandedWeek] = useState<number | null>(1);
+
+  const isTablet = width >= 768;
+  const isSplitView = width >= 1024;
 
   const showError = (message: string) => {
     setErrorModal({ visible: true, message });
@@ -124,7 +129,6 @@ export default function ProgramDetailScreen() {
     }
   };
 
-  // Group sessions by week
   const sessionsByWeek = React.useMemo(() => {
     if (!program?.sessions) return {};
     return program.sessions.reduce<Record<number, WorkoutSession[]>>((acc, session) => {
@@ -195,7 +199,7 @@ export default function ProgramDetailScreen() {
               <IconSymbol
                 ios_icon_name="trash"
                 android_material_icon_name="delete"
-                size={22}
+                size={isTablet ? 24 : 22}
                 color={themeColors.error}
               />
             </TouchableOpacity>
@@ -203,7 +207,6 @@ export default function ProgramDetailScreen() {
         }}
       />
 
-      {/* Error Modal */}
       <Modal
         visible={errorModal.visible}
         transparent
@@ -241,7 +244,6 @@ export default function ProgramDetailScreen() {
         </View>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       <Modal
         visible={deleteModal}
         transparent
@@ -287,37 +289,38 @@ export default function ProgramDetailScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isTablet && { paddingHorizontal: spacing.xl, maxWidth: isSplitView ? 1400 : 1000, alignSelf: 'center', width: '100%' }
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Program Overview Card */}
         <LinearGradient
           colors={[themeColors.card, themeColors.card]}
           style={[styles.card, { borderColor: themeColors.border }]}
         >
-          <Text style={[styles.cardTitle, { color: themeColors.text }]}>
+          <Text style={[styles.cardTitle, { color: themeColors.text }, isTablet && { fontSize: 24 }]}>
             Program Overview
           </Text>
           <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Duration:</Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>{durationText}</Text>
+            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>Duration:</Text>
+            <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>{durationText}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Split:</Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>{splitType}</Text>
+            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>Split:</Text>
+            <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>{splitType}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }]}>Sessions:</Text>
-            <Text style={[styles.infoValue, { color: themeColors.text }]}>
+            <Text style={[styles.infoLabel, { color: themeColors.textSecondary }, isTablet && { fontSize: 17 }]}>Sessions:</Text>
+            <Text style={[styles.infoValue, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
               {program.sessions?.length ?? 0}
             </Text>
           </View>
         </LinearGradient>
 
-        {/* Workout Sessions by Week */}
         {weekNumbers.length > 0 ? (
           <View style={styles.sessionsSection}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }, isTablet && { fontSize: 24 }]}>
               Workout Sessions
             </Text>
             {weekNumbers.map((week) => {
@@ -336,14 +339,14 @@ export default function ProgramDetailScreen() {
                       style={[styles.weekHeader, { borderColor: isExpanded ? themeColors.primary + '40' : themeColors.border }]}
                     >
                       <View style={styles.weekHeaderLeft}>
-                        <View style={[styles.weekBadge, { backgroundColor: themeColors.primary }]}>
-                          <Text style={styles.weekBadgeText}>W{week}</Text>
+                        <View style={[styles.weekBadge, { backgroundColor: themeColors.primary }, isTablet && { width: 48, height: 48, borderRadius: 24 }]}>
+                          <Text style={[styles.weekBadgeText, isTablet && { fontSize: 15 }]}>W{week}</Text>
                         </View>
                         <View>
-                          <Text style={[styles.weekTitle, { color: themeColors.text }]}>
+                          <Text style={[styles.weekTitle, { color: themeColors.text }, isTablet && { fontSize: 19 }]}>
                             Week {week}
                           </Text>
-                          <Text style={[styles.weekSubtitle, { color: themeColors.textSecondary }]}>
+                          <Text style={[styles.weekSubtitle, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
                             {weekSessions.length} sessions
                           </Text>
                         </View>
@@ -351,7 +354,7 @@ export default function ProgramDetailScreen() {
                       <IconSymbol
                         ios_icon_name={isExpanded ? 'chevron.up' : 'chevron.down'}
                         android_material_icon_name={isExpanded ? 'expand-less' : 'expand-more'}
-                        size={24}
+                        size={isTablet ? 28 : 24}
                         color={themeColors.primary}
                       />
                     </LinearGradient>
@@ -370,11 +373,11 @@ export default function ProgramDetailScreen() {
                       >
                         <View style={styles.sessionHeader}>
                           <View style={[styles.dayBadge, { backgroundColor: themeColors.secondary + '30' }]}>
-                            <Text style={[styles.dayBadgeText, { color: themeColors.secondary }]}>
+                            <Text style={[styles.dayBadgeText, { color: themeColors.secondary }, isTablet && { fontSize: 14 }]}>
                               Day {dayNumber}
                             </Text>
                           </View>
-                          <Text style={[styles.sessionName, { color: themeColors.text }]}>
+                          <Text style={[styles.sessionName, { color: themeColors.text }, isTablet && { fontSize: 18 }]}>
                             {exerciseName}
                           </Text>
                           {isCompleted && (
@@ -391,122 +394,128 @@ export default function ProgramDetailScreen() {
 
                         {Array.isArray(session.exercises) && exerciseCount > 0 ? (
                           <View style={styles.exercisesList}>
-                            <Text style={[styles.exercisesHeader, { color: themeColors.textSecondary }]}>
+                            <Text style={[styles.exercisesHeader, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
                               Exercises ({exerciseCount})
                             </Text>
-                            {session.exercises.map((ex: any, eIdx: number) => {
-                              const exName = ex.name || ex.exercise_name || `Exercise ${eIdx + 1}`;
-                              const setsText = ex.sets ? `${ex.sets} sets` : '';
-                              const repsText = ex.reps ? `${ex.reps} reps` : '';
-                              const restText = ex.rest ? `Rest: ${ex.rest}` : '';
-                              const rpeText = ex.rpe ? `RPE ${ex.rpe}` : '';
-                              const tempoText = ex.tempo ? `Tempo: ${ex.tempo}` : '';
-                              const notesText = ex.notes || '';
+                            <View style={isSplitView && { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+                              {session.exercises.map((ex: any, eIdx: number) => {
+                                const exName = ex.name || ex.exercise_name || `Exercise ${eIdx + 1}`;
+                                const setsText = ex.sets ? `${ex.sets} sets` : '';
+                                const repsText = ex.reps ? `${ex.reps} reps` : '';
+                                const restText = ex.rest ? `Rest: ${ex.rest}` : '';
+                                const rpeText = ex.rpe ? `RPE ${ex.rpe}` : '';
+                                const tempoText = ex.tempo ? `Tempo: ${ex.tempo}` : '';
+                                const notesText = ex.notes || '';
 
-                              return (
-                                <View
-                                  key={eIdx}
-                                  style={[styles.exerciseCard, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
-                                >
-                                  <View style={styles.exerciseHeader}>
-                                    <View style={[styles.exerciseNumber, { backgroundColor: themeColors.primary + '20' }]}>
-                                      <Text style={[styles.exerciseNumberText, { color: themeColors.primary }]}>
-                                        {eIdx + 1}
+                                return (
+                                  <View
+                                    key={eIdx}
+                                    style={[
+                                      styles.exerciseCard,
+                                      { backgroundColor: themeColors.background, borderColor: themeColors.border },
+                                      isSplitView && { width: (width - spacing.xl * 2 - spacing.md * 3) / 2 }
+                                    ]}
+                                  >
+                                    <View style={styles.exerciseHeader}>
+                                      <View style={[styles.exerciseNumber, { backgroundColor: themeColors.primary + '20' }]}>
+                                        <Text style={[styles.exerciseNumberText, { color: themeColors.primary }, isTablet && { fontSize: 15 }]}>
+                                          {eIdx + 1}
+                                        </Text>
+                                      </View>
+                                      <Text style={[styles.exerciseName, { color: themeColors.text }, isTablet && { fontSize: 17 }]}>
+                                        {exName}
                                       </Text>
                                     </View>
-                                    <Text style={[styles.exerciseName, { color: themeColors.text }]}>
-                                      {exName}
-                                    </Text>
-                                  </View>
-                                  
-                                  <View style={styles.exerciseDetails}>
-                                    {setsText ? (
-                                      <View style={styles.exerciseDetailRow}>
+                                    
+                                    <View style={styles.exerciseDetails}>
+                                      {setsText ? (
+                                        <View style={styles.exerciseDetailRow}>
+                                          <IconSymbol
+                                            ios_icon_name="repeat"
+                                            android_material_icon_name="repeat"
+                                            size={isTablet ? 18 : 16}
+                                            color={themeColors.primary}
+                                          />
+                                          <Text style={[styles.exerciseDetailText, { color: themeColors.text }, isTablet && { fontSize: 16 }]}>
+                                            {setsText}
+                                          </Text>
+                                        </View>
+                                      ) : null}
+                                      
+                                      {repsText ? (
+                                        <View style={styles.exerciseDetailRow}>
+                                          <IconSymbol
+                                            ios_icon_name="number"
+                                            android_material_icon_name="tag"
+                                            size={isTablet ? 18 : 16}
+                                            color={themeColors.secondary}
+                                          />
+                                          <Text style={[styles.exerciseDetailText, { color: themeColors.text }, isTablet && { fontSize: 16 }]}>
+                                            {repsText}
+                                          </Text>
+                                        </View>
+                                      ) : null}
+                                      
+                                      {restText ? (
+                                        <View style={styles.exerciseDetailRow}>
+                                          <IconSymbol
+                                            ios_icon_name="timer"
+                                            android_material_icon_name="schedule"
+                                            size={isTablet ? 18 : 16}
+                                            color={themeColors.success}
+                                          />
+                                          <Text style={[styles.exerciseDetailText, { color: themeColors.text }, isTablet && { fontSize: 16 }]}>
+                                            {restText}
+                                          </Text>
+                                        </View>
+                                      ) : null}
+
+                                      {rpeText ? (
+                                        <View style={styles.exerciseDetailRow}>
+                                          <IconSymbol
+                                            ios_icon_name="gauge"
+                                            android_material_icon_name="speed"
+                                            size={isTablet ? 18 : 16}
+                                            color={themeColors.warning}
+                                          />
+                                          <Text style={[styles.exerciseDetailText, { color: themeColors.text }, isTablet && { fontSize: 16 }]}>
+                                            {rpeText}
+                                          </Text>
+                                        </View>
+                                      ) : null}
+
+                                      {tempoText ? (
+                                        <View style={styles.exerciseDetailRow}>
+                                          <IconSymbol
+                                            ios_icon_name="metronome"
+                                            android_material_icon_name="av-timer"
+                                            size={isTablet ? 18 : 16}
+                                            color={themeColors.textSecondary}
+                                          />
+                                          <Text style={[styles.exerciseDetailText, { color: themeColors.text }, isTablet && { fontSize: 16 }]}>
+                                            {tempoText}
+                                          </Text>
+                                        </View>
+                                      ) : null}
+                                    </View>
+
+                                    {notesText ? (
+                                      <View style={[styles.exerciseNotes, { backgroundColor: themeColors.primary + '10', borderColor: themeColors.primary + '30' }]}>
                                         <IconSymbol
-                                          ios_icon_name="repeat"
-                                          android_material_icon_name="repeat"
-                                          size={16}
+                                          ios_icon_name="note.text"
+                                          android_material_icon_name="description"
+                                          size={14}
                                           color={themeColors.primary}
                                         />
-                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
-                                          {setsText}
-                                        </Text>
-                                      </View>
-                                    ) : null}
-                                    
-                                    {repsText ? (
-                                      <View style={styles.exerciseDetailRow}>
-                                        <IconSymbol
-                                          ios_icon_name="number"
-                                          android_material_icon_name="tag"
-                                          size={16}
-                                          color={themeColors.secondary}
-                                        />
-                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
-                                          {repsText}
-                                        </Text>
-                                      </View>
-                                    ) : null}
-                                    
-                                    {restText ? (
-                                      <View style={styles.exerciseDetailRow}>
-                                        <IconSymbol
-                                          ios_icon_name="timer"
-                                          android_material_icon_name="schedule"
-                                          size={16}
-                                          color={themeColors.success}
-                                        />
-                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
-                                          {restText}
-                                        </Text>
-                                      </View>
-                                    ) : null}
-
-                                    {rpeText ? (
-                                      <View style={styles.exerciseDetailRow}>
-                                        <IconSymbol
-                                          ios_icon_name="gauge"
-                                          android_material_icon_name="speed"
-                                          size={16}
-                                          color={themeColors.warning}
-                                        />
-                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
-                                          {rpeText}
-                                        </Text>
-                                      </View>
-                                    ) : null}
-
-                                    {tempoText ? (
-                                      <View style={styles.exerciseDetailRow}>
-                                        <IconSymbol
-                                          ios_icon_name="metronome"
-                                          android_material_icon_name="av-timer"
-                                          size={16}
-                                          color={themeColors.textSecondary}
-                                        />
-                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
-                                          {tempoText}
+                                        <Text style={[styles.exerciseNotesText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
+                                          {notesText}
                                         </Text>
                                       </View>
                                     ) : null}
                                   </View>
-
-                                  {notesText ? (
-                                    <View style={[styles.exerciseNotes, { backgroundColor: themeColors.primary + '10', borderColor: themeColors.primary + '30' }]}>
-                                      <IconSymbol
-                                        ios_icon_name="note.text"
-                                        android_material_icon_name="description"
-                                        size={14}
-                                        color={themeColors.primary}
-                                      />
-                                      <Text style={[styles.exerciseNotesText, { color: themeColors.textSecondary }]}>
-                                        {notesText}
-                                      </Text>
-                                    </View>
-                                  ) : null}
-                                </View>
-                              );
-                            })}
+                                );
+                              })}
+                            </View>
                           </View>
                         ) : (
                           <Text style={[styles.noExercisesText, { color: themeColors.textSecondary }]}>
@@ -529,14 +538,14 @@ export default function ProgramDetailScreen() {
               <IconSymbol
                 ios_icon_name="calendar"
                 android_material_icon_name="calendar-today"
-                size={32}
+                size={isTablet ? 40 : 32}
                 color={themeColors.primary}
               />
             </View>
-            <Text style={[styles.emptySessionsText, { color: themeColors.text }]}>
+            <Text style={[styles.emptySessionsText, { color: themeColors.text }, isTablet && { fontSize: 22 }]}>
               No Sessions Yet
             </Text>
-            <Text style={[styles.emptySessionsSubtext, { color: themeColors.textSecondary }]}>
+            <Text style={[styles.emptySessionsSubtext, { color: themeColors.textSecondary }, isTablet && { fontSize: 16 }]}>
               Workout sessions will appear here once the program is generated
             </Text>
           </LinearGradient>
@@ -792,7 +801,6 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     textAlign: 'center',
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',

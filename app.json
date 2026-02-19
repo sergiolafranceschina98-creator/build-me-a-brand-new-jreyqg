@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Natively App",
-    "slug": "Natively App",
+    "name": "build-me-a-brand-new",
+    "slug": "build-me-a-brand-new",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-xpv.png",
@@ -36,7 +36,7 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "scheme": "Natively App",
+    "scheme": "build-me-a-brand-new",
     "experiments": {
       "typedRoutes": true
     },

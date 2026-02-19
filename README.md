@@ -1,4 +1,4 @@
-# Natively App
+# build-me-a-brand-new
 
 This app was built using [Natively.dev](https://natively.dev) - a platform for creating mobile apps.
 

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { colors, spacing, typography } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -30,9 +31,15 @@ export default function HomeScreen() {
   const theme = useTheme();
   const isDark = theme.dark;
   const themeColors = isDark ? colors.dark : colors.light;
+  const { width } = useWindowDimensions();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Determine number of columns based on screen width (iPad optimization)
+  const isTablet = width >= 768;
+  const numColumns = width >= 1024 ? 3 : width >= 768 ? 2 : 1;
+  const cardWidth = isTablet ? (width - spacing.md * (numColumns + 1)) / numColumns : width - spacing.md * 2;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -85,20 +92,20 @@ export default function HomeScreen() {
       <View style={styles.emptyContainer}>
         <LinearGradient
           colors={[themeColors.primary + '20', themeColors.secondary + '10']}
-          style={styles.emptyGradient}
+          style={[styles.emptyGradient, isTablet && { maxWidth: 600 }]}
         >
           <View style={styles.emptyIconContainer}>
             <IconSymbol
               ios_icon_name="person.2.fill"
               android_material_icon_name="group"
-              size={64}
+              size={isTablet ? 80 : 64}
               color={themeColors.primary}
             />
           </View>
-          <Text style={[styles.emptyTitle, { color: themeColors.text }]}>
+          <Text style={[styles.emptyTitle, { color: themeColors.text }, isTablet && { fontSize: 32 }]}>
             No Clients Yet
           </Text>
-          <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
+          <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }, isTablet && { fontSize: 18 }]}>
             Start building personalized workout programs by adding your first client
           </Text>
         </LinearGradient>
@@ -112,6 +119,7 @@ export default function HomeScreen() {
         key={index}
         onPress={() => handleClientPress(client.id)}
         activeOpacity={0.7}
+        style={[isTablet && { width: cardWidth }]}
       >
         <LinearGradient
           colors={[themeColors.card, themeColors.card]}
@@ -121,23 +129,23 @@ export default function HomeScreen() {
             <View style={styles.clientAvatar}>
               <LinearGradient
                 colors={[themeColors.primary, themeColors.secondary]}
-                style={styles.avatarGradient}
+                style={[styles.avatarGradient, isTablet && { width: 64, height: 64, borderRadius: 32 }]}
               >
-                <Text style={styles.avatarText}>
+                <Text style={[styles.avatarText, isTablet && { fontSize: 28 }]}>
                   {client.name.charAt(0).toUpperCase()}
                 </Text>
               </LinearGradient>
             </View>
             <View style={styles.clientInfo}>
-              <Text style={[styles.clientName, { color: themeColors.text }]}>
+              <Text style={[styles.clientName, { color: themeColors.text }, isTablet && { fontSize: 20 }]}>
                 {client.name}
               </Text>
               <View style={styles.clientMeta}>
-                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
+                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
                   {client.age} years
                 </Text>
                 <View style={[styles.dot, { backgroundColor: themeColors.textSecondary }]} />
-                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
+                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
                   {client.experience}
                 </Text>
               </View>
@@ -145,12 +153,12 @@ export default function HomeScreen() {
             <IconSymbol
               ios_icon_name="chevron.right"
               android_material_icon_name="chevron-right"
-              size={20}
+              size={isTablet ? 24 : 20}
               color={themeColors.textSecondary}
             />
           </View>
           <View style={[styles.clientGoals, { backgroundColor: themeColors.primary + '15' }]}>
-            <Text style={[styles.clientGoalsText, { color: themeColors.primary }]}>
+            <Text style={[styles.clientGoalsText, { color: themeColors.primary }, isTablet && { fontSize: 15 }]}>
               {client.goals}
             </Text>
           </View>
@@ -174,14 +182,14 @@ export default function HomeScreen() {
             <TouchableOpacity onPress={handleAddClient} style={styles.addButton}>
               <LinearGradient
                 colors={[themeColors.primary, themeColors.secondary]}
-                style={styles.addButtonGradient}
+                style={[styles.addButtonGradient, isTablet && { width: 44, height: 44, borderRadius: 22 }]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
                 <IconSymbol
                   ios_icon_name="plus"
                   android_material_icon_name="add"
-                  size={20}
+                  size={isTablet ? 24 : 20}
                   color="#FFFFFF"
                 />
               </LinearGradient>
@@ -197,13 +205,24 @@ export default function HomeScreen() {
       ) : (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isTablet && { paddingHorizontal: spacing.xl }
+          ]}
           showsVerticalScrollIndicator={false}
         >
           {clients.length === 0 ? (
             renderEmptyState()
           ) : (
-            <View style={styles.clientsList}>
+            <View style={[
+              styles.clientsList,
+              isTablet && {
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-start',
+                gap: spacing.md,
+              }
+            ]}>
               {clients.map((client, index) => renderClient(client, index))}
             </View>
           )}
@@ -212,20 +231,20 @@ export default function HomeScreen() {
 
       {clients.length > 0 && (
         <TouchableOpacity
-          style={styles.floatingButton}
+          style={[styles.floatingButton, isTablet && { width: 72, height: 72, bottom: 120, right: spacing.xl }]}
           onPress={handleAddClient}
           activeOpacity={0.9}
         >
           <LinearGradient
             colors={[themeColors.primary, themeColors.secondary]}
-            style={styles.floatingButtonGradient}
+            style={[styles.floatingButtonGradient, isTablet && { width: 72, height: 72, borderRadius: 36 }]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <IconSymbol
               ios_icon_name="plus"
               android_material_icon_name="add"
-              size={28}
+              size={isTablet ? 32 : 28}
               color="#FFFFFF"
             />
           </LinearGradient>
