@@ -156,18 +156,6 @@ export default function PrivacyScreen() {
             We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
           </Text>
         </View>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Contact Us
-          </Text>
-          <Text style={[styles.bodyText, { color: themeColors.textSecondary }]}>
-            If you have any questions about this Privacy Policy, please contact us at:
-          </Text>
-          <Text style={[styles.contactText, { color: themeColors.primary }]}>
-            privacy@aiworkoutbuilder.com
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -208,10 +196,5 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginLeft: spacing.md,
     marginBottom: spacing.xs,
-  },
-  contactText: {
-    ...typography.body,
-    fontWeight: '600',
-    marginTop: spacing.sm,
   },
 });

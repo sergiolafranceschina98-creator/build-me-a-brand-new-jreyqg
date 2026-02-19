@@ -109,21 +109,6 @@ export default function HelpScreen() {
             </React.Fragment>
           ))}
         </View>
-
-        <View style={[styles.contactCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-          <Text style={[styles.contactTitle, { color: themeColors.text }]}>
-            Still need help?
-          </Text>
-          <Text style={[styles.contactText, { color: themeColors.textSecondary }]}>
-            Our support team is here to assist you. Reach out to us at:
-          </Text>
-          <Text style={[styles.emailText, { color: themeColors.primary }]}>
-            support@aiworkoutbuilder.com
-          </Text>
-          <Text style={[styles.contactText, { color: themeColors.textSecondary, marginTop: spacing.md }]}>
-            We typically respond within 24 hours.
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -199,29 +184,5 @@ const styles = StyleSheet.create({
     ...typography.body,
     lineHeight: 24,
     marginTop: spacing.md,
-  },
-  contactCard: {
-    borderRadius: 16,
-    padding: spacing.xl,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  contactTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: spacing.md,
-  },
-  contactText: {
-    ...typography.body,
-    lineHeight: 24,
-  },
-  emailText: {
-    ...typography.body,
-    fontWeight: '600',
-    marginTop: spacing.sm,
   },
 });
