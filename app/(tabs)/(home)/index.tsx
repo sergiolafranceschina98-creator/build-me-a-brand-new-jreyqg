@@ -3,7 +3,7 @@ import { colors, spacing, typography } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useTheme } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Constants from 'expo-constants';
 
 interface Client {
   id: string;
@@ -22,7 +23,7 @@ interface Client {
   gender: string;
   goals: string;
   experience: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export default function HomeScreen() {
@@ -34,19 +35,40 @@ export default function HomeScreen() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadClients();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadClients();
+    }, [])
+  );
 
   const loadClients = async () => {
-    console.log('Loading clients...');
+    console.log('[API] GET /api/clients - Loading clients...');
     setLoading(true);
-    // TODO: Backend Integration - GET /api/clients to fetch client list
-    // Simulated data for now
-    setTimeout(() => {
+
+    try {
+      const backendUrl = Constants.expoConfig?.extra?.backendUrl ||
+        'https://3v7m36dq7b8b7nhzwcy3b6cud7ap7qwr.app.specular.dev';
+
+      const response = await fetch(`${backendUrl}/api/clients`);
+
+      if (!response.ok) {
+        let errMsg = `Failed to fetch clients (${response.status})`;
+        try {
+          const errBody = await response.json();
+          errMsg = errBody.error || errMsg;
+        } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+
+      const data: Client[] = await response.json();
+      console.log('[API] Clients loaded:', data.length);
+      setClients(data);
+    } catch (error) {
+      console.error('Error loading clients:', error);
       setClients([]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const handleAddClient = () => {

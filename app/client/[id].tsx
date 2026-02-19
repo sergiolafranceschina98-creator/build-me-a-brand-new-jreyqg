@@ -7,12 +7,18 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@react-navigation/native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, spacing, typography } from '@/styles/commonStyles';
 import { LinearGradient } from 'expo-linear-gradient';
+import Constants from 'expo-constants';
+
+const BACKEND_URL =
+  Constants.expoConfig?.extra?.backendUrl ||
+  'https://3v7m36dq7b8b7nhzwcy3b6cud7ap7qwr.app.specular.dev';
 
 interface ClientDetails {
   id: string;
@@ -23,15 +29,17 @@ interface ClientDetails {
   weight: number;
   experience: string;
   goals: string;
-  training_frequency: number;
+  trainingFrequency: number;
   equipment: string;
-  injuries?: string;
-  preferred_exercises?: string;
-  session_duration: number;
-  body_fat_percentage?: number;
-  squat_1rm?: number;
-  bench_1rm?: number;
-  deadlift_1rm?: number;
+  injuries?: string | null;
+  preferredExercises?: string | null;
+  sessionDuration: number;
+  bodyFatPercentage?: number | null;
+  squat1rm?: number | null;
+  bench1rm?: number | null;
+  deadlift1rm?: number | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Program {
@@ -53,6 +61,15 @@ export default function ClientDetailScreen() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [errorModal, setErrorModal] = useState<{ visible: boolean; message: string }>({
+    visible: false,
+    message: '',
+  });
+  const [deleteModal, setDeleteModal] = useState(false);
+
+  const showError = (message: string) => {
+    setErrorModal({ visible: true, message });
+  };
 
   useEffect(() => {
     console.log('ClientDetailScreen mounted for client:', id);
@@ -61,15 +78,36 @@ export default function ClientDetailScreen() {
 
   const loadClientData = async () => {
     try {
-      console.log('Fetching client details and programs');
+      console.log('[API] Fetching client details and programs for id:', id);
       setLoading(true);
-      // TODO: Backend Integration - GET /api/clients/:id → full client profile
-      // TODO: Backend Integration - GET /api/programs/client/:client_id → [{ id, program_name, duration_weeks, split_type, created_at }]
-      
-      setClient(null);
-      setPrograms([]);
-    } catch (error) {
+
+      // GET /api/clients/:id → full client profile
+      const clientResponse = await fetch(`${BACKEND_URL}/api/clients/${id}`);
+      if (!clientResponse.ok) {
+        let errMsg = `Failed to load client (${clientResponse.status})`;
+        try {
+          const errBody = await clientResponse.json();
+          errMsg = errBody.error || errMsg;
+        } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+      const clientData: ClientDetails = await clientResponse.json();
+      console.log('[API] Client loaded:', clientData.name);
+      setClient(clientData);
+
+      // GET /api/programs/client/:client_id → [{ id, program_name, duration_weeks, split_type, created_at }]
+      const programsResponse = await fetch(`${BACKEND_URL}/api/programs/client/${id}`);
+      if (!programsResponse.ok) {
+        console.warn('[API] Failed to load programs:', programsResponse.status);
+        setPrograms([]);
+      } else {
+        const programsData: Program[] = await programsResponse.json();
+        console.log('[API] Programs loaded:', programsData.length);
+        setPrograms(programsData);
+      }
+    } catch (error: any) {
       console.error('Error loading client data:', error);
+      showError(error?.message || 'Failed to load client data.');
     } finally {
       setLoading(false);
     }
@@ -77,20 +115,59 @@ export default function ClientDetailScreen() {
 
   const handleGenerateProgram = async () => {
     console.log('User tapped Generate Program button');
-    
+
     try {
       setGenerating(true);
-      // TODO: Backend Integration - POST /api/programs/generate with { client_id } → { program_id, program_name, duration_weeks, split_type, program_data }
-      console.log('Generating AI workout program for client:', id);
-      
-      setTimeout(() => {
-        console.log('Program generated successfully (mock)');
-        loadClientData();
-      }, 2000);
-    } catch (error) {
+      console.log('[API] POST /api/programs/generate for client:', id);
+
+      const response = await fetch(`${BACKEND_URL}/api/programs/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: id }),
+      });
+
+      if (!response.ok) {
+        let errMsg = `Failed to generate program (${response.status})`;
+        try {
+          const errBody = await response.json();
+          errMsg = errBody.error || errMsg;
+        } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+
+      const result = await response.json();
+      console.log('Program generated successfully:', result.program_name);
+
+      // Reload programs list
+      await loadClientData();
+    } catch (error: any) {
       console.error('Error generating program:', error);
+      showError(error?.message || 'Failed to generate program. Please try again.');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleDeleteClient = async () => {
+    setDeleteModal(false);
+    try {
+      console.log('[API] DELETE /api/clients/', id);
+      const response = await fetch(`${BACKEND_URL}/api/clients/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        let errMsg = `Failed to delete client (${response.status})`;
+        try {
+          const errBody = await response.json();
+          errMsg = errBody.error || errMsg;
+        } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+      console.log('Client deleted successfully');
+      router.back();
+    } catch (error: any) {
+      console.error('Error deleting client:', error);
+      showError(error?.message || 'Failed to delete client.');
     }
   };
 
@@ -157,8 +234,107 @@ export default function ClientDetailScreen() {
             backgroundColor: themeColors.background,
           },
           headerTintColor: themeColors.text,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => setDeleteModal(true)}
+              style={{ marginRight: spacing.sm }}
+              activeOpacity={0.7}
+            >
+              <IconSymbol
+                ios_icon_name="trash"
+                android_material_icon_name="delete"
+                size={22}
+                color={themeColors.error}
+              />
+            </TouchableOpacity>
+          ),
         }}
       />
+
+      {/* Error Modal */}
+      <Modal
+        visible={errorModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setErrorModal({ visible: false, message: '' })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+            <View style={[styles.modalIconCircle, { backgroundColor: themeColors.error + '20' }]}>
+              <IconSymbol
+                ios_icon_name="exclamationmark.triangle.fill"
+                android_material_icon_name="error"
+                size={28}
+                color={themeColors.error}
+              />
+            </View>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Error</Text>
+            <Text style={[styles.modalMessage, { color: themeColors.textSecondary }]}>
+              {errorModal.message}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setErrorModal({ visible: false, message: '' })}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[themeColors.primary, themeColors.secondary]}
+                style={styles.modalButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.modalButtonText}>OK</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={deleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
+            <View style={[styles.modalIconCircle, { backgroundColor: themeColors.error + '20' }]}>
+              <IconSymbol
+                ios_icon_name="trash.fill"
+                android_material_icon_name="delete"
+                size={28}
+                color={themeColors.error}
+              />
+            </View>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Delete Client</Text>
+            <Text style={[styles.modalMessage, { color: themeColors.textSecondary }]}>
+              Are you sure you want to delete {clientName}? This will also delete all associated programs and sessions.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setDeleteModal(false)}
+                activeOpacity={0.8}
+                style={[styles.modalCancelButton, { borderColor: themeColors.border }]}
+              >
+                <Text style={[styles.modalCancelText, { color: themeColors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDeleteClient}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={[themeColors.error, '#FF6B6B']}
+                  style={styles.modalButton}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.modalButtonText}>Delete</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <ScrollView
         style={styles.scrollView}
@@ -467,5 +643,72 @@ const styles = StyleSheet.create({
   },
   buttonLoader: {
     marginRight: spacing.xs,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 20,
+    padding: spacing.xl,
+    alignItems: 'center',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    elevation: 20,
+  },
+  modalIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTitle: {
+    ...typography.h3,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    ...typography.body,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'center',
+  },
+  modalButton: {
+    borderRadius: 12,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalCancelButton: {
+    borderRadius: 12,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    minWidth: 100,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
