@@ -101,7 +101,7 @@ export function register(app: App, fastify: FastifyInstance) {
               age: { type: 'number' },
               gender: { type: 'string' },
               height: { type: 'number' },
-              weight: { type: 'string' },
+              weight: { type: ['number', 'null'] },
               experience: { type: 'string' },
               goals: { type: 'string' },
               trainingFrequency: { type: 'number' },
@@ -109,10 +109,10 @@ export function register(app: App, fastify: FastifyInstance) {
               injuries: { type: ['string', 'null'] },
               preferredExercises: { type: ['string', 'null'] },
               sessionDuration: { type: 'number' },
-              bodyFatPercentage: { type: ['string', 'null'] },
-              squat1rm: { type: ['string', 'null'] },
-              bench1rm: { type: ['string', 'null'] },
-              deadlift1rm: { type: ['string', 'null'] },
+              bodyFatPercentage: { type: ['number', 'null'] },
+              squat1rm: { type: ['number', 'null'] },
+              bench1rm: { type: ['number', 'null'] },
+              deadlift1rm: { type: ['number', 'null'] },
               createdAt: { type: 'string', format: 'date-time' },
               updatedAt: { type: 'string', format: 'date-time' },
             },
@@ -164,7 +164,14 @@ export function register(app: App, fastify: FastifyInstance) {
 
         app.logger.info({ clientId: client.id }, 'Client created successfully');
         reply.status(201);
-        return client;
+        return {
+          ...client,
+          weight: client.weight ? parseFloat(client.weight) : null,
+          bodyFatPercentage: client.bodyFatPercentage ? parseFloat(client.bodyFatPercentage) : null,
+          squat1rm: client.squat1rm ? parseFloat(client.squat1rm) : null,
+          bench1rm: client.bench1rm ? parseFloat(client.bench1rm) : null,
+          deadlift1rm: client.deadlift1rm ? parseFloat(client.deadlift1rm) : null,
+        };
       } catch (error) {
         app.logger.error(
           { err: error, body: request.body },
@@ -249,7 +256,7 @@ export function register(app: App, fastify: FastifyInstance) {
               age: { type: 'number' },
               gender: { type: 'string' },
               height: { type: 'number' },
-              weight: { type: 'string' },
+              weight: { type: ['number', 'null'] },
               experience: { type: 'string' },
               goals: { type: 'string' },
               trainingFrequency: { type: 'number' },
@@ -257,10 +264,10 @@ export function register(app: App, fastify: FastifyInstance) {
               injuries: { type: ['string', 'null'] },
               preferredExercises: { type: ['string', 'null'] },
               sessionDuration: { type: 'number' },
-              bodyFatPercentage: { type: ['string', 'null'] },
-              squat1rm: { type: ['string', 'null'] },
-              bench1rm: { type: ['string', 'null'] },
-              deadlift1rm: { type: ['string', 'null'] },
+              bodyFatPercentage: { type: ['number', 'null'] },
+              squat1rm: { type: ['number', 'null'] },
+              bench1rm: { type: ['number', 'null'] },
+              deadlift1rm: { type: ['number', 'null'] },
               createdAt: { type: 'string', format: 'date-time' },
               updatedAt: { type: 'string', format: 'date-time' },
             },
@@ -290,7 +297,14 @@ export function register(app: App, fastify: FastifyInstance) {
           { clientId: client.id },
           'Client fetched successfully'
         );
-        return client;
+        return {
+          ...client,
+          weight: client.weight ? parseFloat(client.weight) : null,
+          bodyFatPercentage: client.bodyFatPercentage ? parseFloat(client.bodyFatPercentage) : null,
+          squat1rm: client.squat1rm ? parseFloat(client.squat1rm) : null,
+          bench1rm: client.bench1rm ? parseFloat(client.bench1rm) : null,
+          deadlift1rm: client.deadlift1rm ? parseFloat(client.deadlift1rm) : null,
+        };
       } catch (error) {
         app.logger.error(
           { err: error, clientId: request.params.id },
@@ -345,7 +359,7 @@ export function register(app: App, fastify: FastifyInstance) {
               age: { type: 'number' },
               gender: { type: 'string' },
               height: { type: 'number' },
-              weight: { type: 'string' },
+              weight: { type: ['number', 'null'] },
               experience: { type: 'string' },
               goals: { type: 'string' },
               trainingFrequency: { type: 'number' },
@@ -353,10 +367,10 @@ export function register(app: App, fastify: FastifyInstance) {
               injuries: { type: ['string', 'null'] },
               preferredExercises: { type: ['string', 'null'] },
               sessionDuration: { type: 'number' },
-              bodyFatPercentage: { type: ['string', 'null'] },
-              squat1rm: { type: ['string', 'null'] },
-              bench1rm: { type: ['string', 'null'] },
-              deadlift1rm: { type: ['string', 'null'] },
+              bodyFatPercentage: { type: ['number', 'null'] },
+              squat1rm: { type: ['number', 'null'] },
+              bench1rm: { type: ['number', 'null'] },
+              deadlift1rm: { type: ['number', 'null'] },
               createdAt: { type: 'string', format: 'date-time' },
               updatedAt: { type: 'string', format: 'date-time' },
             },
@@ -429,7 +443,14 @@ export function register(app: App, fastify: FastifyInstance) {
           { clientId: updated.id },
           'Client updated successfully'
         );
-        return updated;
+        return {
+          ...updated,
+          weight: updated.weight ? parseFloat(updated.weight) : null,
+          bodyFatPercentage: updated.bodyFatPercentage ? parseFloat(updated.bodyFatPercentage) : null,
+          squat1rm: updated.squat1rm ? parseFloat(updated.squat1rm) : null,
+          bench1rm: updated.bench1rm ? parseFloat(updated.bench1rm) : null,
+          deadlift1rm: updated.deadlift1rm ? parseFloat(updated.deadlift1rm) : null,
+        };
       } catch (error) {
         app.logger.error(
           { err: error, clientId: request.params.id, body: request.body },

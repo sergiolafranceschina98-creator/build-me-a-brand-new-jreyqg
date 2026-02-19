@@ -43,6 +43,702 @@ interface ProgramData {
   [key: string]: any;
 }
 
+// Exercise database organized by category
+const EXERCISE_DATABASE = {
+  push: {
+    chest: [
+      { name: 'Barbell Bench Press', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Dumbbell Bench Press', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Incline Barbell Press', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Incline Dumbbell Press', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Dips', equipment: ['Commercial Gym', 'Home Gym', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Push-ups', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Decline Push-ups', equipment: ['Commercial Gym', 'Home Gym', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Cable Flyes', equipment: ['Commercial Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Pec Deck Machine', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate'] },
+    ],
+    shoulders: [
+      { name: 'Overhead Press', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Dumbbell Shoulder Press', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Lateral Raises', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Front Raises', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Face Pulls', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Arnold Press', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Machine Shoulder Press', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate'] },
+    ],
+    triceps: [
+      { name: 'Close-Grip Bench Press', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Tricep Dips', equipment: ['Commercial Gym', 'Home Gym', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Overhead Tricep Extension', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Tricep Pushdowns', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Skull Crushers', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Dumbbell Tricep Extensions', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+    ],
+  },
+  pull: {
+    back: [
+      { name: 'Barbell Rows', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Dumbbell Rows', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Pull-ups', equipment: ['Commercial Gym', 'Home Gym', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Lat Pulldowns', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Seated Cable Rows', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'T-Bar Rows', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Deadlifts', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Machine Rows', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate'] },
+    ],
+    biceps: [
+      { name: 'Barbell Curls', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Dumbbell Curls', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Hammer Curls', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Preacher Curls', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Cable Curls', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'EZ-Bar Curls', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+    ],
+    rearDelts: [
+      { name: 'Face Pulls', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Reverse Flyes', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Rear Delt Rows', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Cable Reverse Flyes', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate'] },
+    ],
+  },
+  legs: {
+    quads: [
+      { name: 'Barbell Squats', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Front Squats', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Leg Press', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Bulgarian Split Squats', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Goblet Squats', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Lunges', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Leg Extensions', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate'] },
+    ],
+    hamstrings: [
+      { name: 'Romanian Deadlifts', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Leg Curls', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Nordic Curls', equipment: ['Commercial Gym', 'Home Gym', 'Bodyweight Only'], difficulty: ['Advanced'] },
+      { name: 'Good Mornings', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+      { name: 'Glute-Ham Raises', equipment: ['Commercial Gym'], difficulty: ['Advanced'] },
+    ],
+    glutes: [
+      { name: 'Hip Thrusts', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Glute Bridges', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Cable Pull-Throughs', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Bulgarian Split Squats', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+    ],
+    calves: [
+      { name: 'Standing Calf Raises', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Seated Calf Raises', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate', 'Advanced'] },
+      { name: 'Leg Press Calf Raises', equipment: ['Commercial Gym'], difficulty: ['Beginner', 'Intermediate'] },
+    ],
+  },
+  compounds: [
+    { name: 'Deadlifts', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+    { name: 'Barbell Squats', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+    { name: 'Barbell Bench Press', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+    { name: 'Overhead Press', equipment: ['Commercial Gym', 'Home Gym', 'Dumbbells Only'], difficulty: ['Intermediate', 'Advanced'] },
+    { name: 'Barbell Rows', equipment: ['Commercial Gym', 'Home Gym'], difficulty: ['Intermediate', 'Advanced'] },
+    { name: 'Pull-ups', equipment: ['Commercial Gym', 'Home Gym', 'Bodyweight Only'], difficulty: ['Intermediate', 'Advanced'] },
+  ],
+};
+
+// Helper function to get suitable exercises
+function getExercises(category: string, muscleGroup: string, equipment: string, difficulty: string, avoid: string = ''): Exercise[] {
+  let exercises: any[] = [];
+
+  if (category === 'push' && muscleGroup === 'chest') {
+    exercises = EXERCISE_DATABASE.push.chest;
+  } else if (category === 'push' && muscleGroup === 'shoulders') {
+    exercises = EXERCISE_DATABASE.push.shoulders;
+  } else if (category === 'push' && muscleGroup === 'triceps') {
+    exercises = EXERCISE_DATABASE.push.triceps;
+  } else if (category === 'pull' && muscleGroup === 'back') {
+    exercises = EXERCISE_DATABASE.pull.back;
+  } else if (category === 'pull' && muscleGroup === 'biceps') {
+    exercises = EXERCISE_DATABASE.pull.biceps;
+  } else if (category === 'pull' && muscleGroup === 'rearDelts') {
+    exercises = EXERCISE_DATABASE.pull.rearDelts;
+  } else if (category === 'legs' && muscleGroup === 'quads') {
+    exercises = EXERCISE_DATABASE.legs.quads;
+  } else if (category === 'legs' && muscleGroup === 'hamstrings') {
+    exercises = EXERCISE_DATABASE.legs.hamstrings;
+  } else if (category === 'legs' && muscleGroup === 'glutes') {
+    exercises = EXERCISE_DATABASE.legs.glutes;
+  } else if (category === 'legs' && muscleGroup === 'calves') {
+    exercises = EXERCISE_DATABASE.legs.calves;
+  } else if (category === 'compounds') {
+    exercises = EXERCISE_DATABASE.compounds;
+  }
+
+  // Filter by equipment and difficulty
+  let filtered = exercises.filter(ex =>
+    ex.equipment.includes(equipment) &&
+    ex.difficulty.includes(difficulty) &&
+    !ex.name.toLowerCase().includes(avoid.toLowerCase())
+  );
+
+  // If no exact match, try with lower equipment requirements
+  if (filtered.length === 0 && equipment !== 'Bodyweight Only') {
+    const equipmentOrder = ['Commercial Gym', 'Home Gym', 'Dumbbells Only', 'Bodyweight Only'];
+    const currentIndex = equipmentOrder.indexOf(equipment);
+
+    for (let i = currentIndex + 1; i < equipmentOrder.length; i++) {
+      filtered = exercises.filter(ex =>
+        ex.equipment.includes(equipmentOrder[i]) &&
+        ex.difficulty.includes(difficulty)
+      );
+      if (filtered.length > 0) break;
+    }
+  }
+
+  return filtered.map(ex => ({
+    name: ex.name,
+    sets: 0,
+    reps: '0',
+    weight: '',
+    tempo: '',
+    restSeconds: 0,
+    rpe: '',
+    notes: '',
+  }));
+}
+
+// Generate a complete program with specific exercises
+function generateDetailedProgram(
+  client: any,
+  splitType: string,
+  durationWeeks: number,
+  injuries: string = ''
+): ProgramData {
+  const experience = client.experience as string;
+  const goals = client.goals as string;
+  const equipment = client.equipment as string;
+  const preferredExercises = client.preferredExercises as string;
+
+  const isStrengthGoal = goals.toLowerCase().includes('strength');
+  const isHypertrophyGoal = goals.toLowerCase().includes('hypertrophy') || goals.toLowerCase().includes('muscle');
+  const isFatLossGoal = goals.toLowerCase().includes('fat') || goals.toLowerCase().includes('loss');
+
+  const repsPhase1 = isStrengthGoal ? '5-7' : isFatLossGoal ? '12-15' : '8-12';
+  const repsPhase2 = isStrengthGoal ? '3-5' : isFatLossGoal ? '12-15' : '10-12';
+  const setsPhase1 = isStrengthGoal ? 5 : 4;
+  const setsPhase2 = isStrengthGoal ? 4 : 3;
+
+  const weeks: Week[] = [];
+
+  if (splitType === 'Push/Pull/Legs') {
+    // PPL split - 6 days per week
+    for (let week = 1; week <= durationWeeks; week++) {
+      const isDeload = week === durationWeeks;
+      const dayInWeek = (week - 1) % 3; // Determines which phase (Phase 1 or Phase 2)
+      const usePhase2 = week > 4; // Switch to phase 2 after week 4
+
+      // Push Day
+      const pushDay: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Push (Chest Focus)`,
+        exercises: [
+          {
+            name: 'Barbell Bench Press',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '3-0-1-0',
+            restSeconds: isDeload ? 60 : (usePhase2 ? 90 : 120),
+            rpe: '7-8',
+            notes: 'Control the descent, explosive press. Keep shoulders back.',
+          },
+          {
+            name: 'Incline Dumbbell Press',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '10-12' : (usePhase2 ? '10-12' : '8-10'),
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : (usePhase2 ? 75 : 90),
+            rpe: '7-8',
+            notes: '30-45 degree incline, full range of motion',
+          },
+          {
+            name: 'Cable Flyes',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Squeeze at peak contraction, slight bend in elbows',
+          },
+          {
+            name: 'Overhead Press',
+            sets: isDeload ? 2 : 4,
+            reps: isDeload ? '6-8' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: 'controlled',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Keep core tight, press straight up, avoid lower back arch',
+          },
+          {
+            name: 'Lateral Raises',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Slight bend in elbows, lead with elbows not hands',
+          },
+          {
+            name: 'Tricep Pushdowns',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7-8',
+            notes: 'Keep elbows tucked, full extension at bottom',
+          },
+        ],
+      };
+
+      // Pull Day
+      const pullDay: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Pull (Back Focus)`,
+        exercises: [
+          {
+            name: 'Barbell Rows',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Chest to bar, retract scapula, keep core tight',
+          },
+          {
+            name: 'Lat Pulldowns',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '10-12' : (usePhase2 ? '10-12' : '8-10'),
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7-8',
+            notes: 'Pull elbows down and back, squeeze lats at bottom',
+          },
+          {
+            name: 'Dumbbell Rows',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Single arm variation, maintain neutral spine',
+          },
+          {
+            name: 'Barbell Curls',
+            sets: isDeload ? 2 : 3,
+            reps: '8-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Minimal momentum, full range of motion',
+          },
+          {
+            name: 'Face Pulls',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'External rotation, great for rear delts and shoulders',
+          },
+        ],
+      };
+
+      // Legs Day
+      const legsDay: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Legs (Quad Emphasis)`,
+        exercises: [
+          {
+            name: 'Barbell Squats',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '6-8' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Keep chest up, drive through heels, full ROM',
+          },
+          {
+            name: 'Leg Press',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '10-12' : '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Full range of motion, pause at bottom',
+          },
+          {
+            name: 'Romanian Deadlifts',
+            sets: isDeload ? 2 : 3,
+            reps: '8-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Hip hinge movement, feel stretch in hamstrings',
+          },
+          {
+            name: 'Leg Curls',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Controlled movement, full range of motion',
+          },
+          {
+            name: 'Hip Thrusts',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Squeeze glutes at top, compact range ideal',
+          },
+          {
+            name: 'Standing Calf Raises',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 6-7',
+            tempo: '1-1-1-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '6-7',
+            notes: 'Full range of motion, pause at top',
+          },
+        ],
+      };
+
+      weeks.push(pushDay);
+      weeks.push(pullDay);
+      weeks.push(legsDay);
+    }
+  } else if (splitType === 'Upper/Lower') {
+    // Upper/Lower split - 4 days per week
+    for (let week = 1; week <= durationWeeks; week++) {
+      const isDeload = week === durationWeeks;
+      const usePhase2 = week > 4;
+
+      // Upper Day A
+      const upperA: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Upper A (Chest Focus)`,
+        exercises: [
+          {
+            name: 'Barbell Bench Press',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '3-0-1-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Control descent, explosive press',
+          },
+          {
+            name: 'Barbell Rows',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '8-10' : '8-10',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Chest to bar, strong contraction',
+          },
+          {
+            name: 'Incline Dumbbell Press',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Upper chest emphasis',
+          },
+          {
+            name: 'Lat Pulldowns',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Pull elbows to hips',
+          },
+          {
+            name: 'Overhead Press',
+            sets: isDeload ? 2 : 3,
+            reps: '8-10',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: 'controlled',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Strict form, no leg drive',
+          },
+          {
+            name: 'Barbell Curls',
+            sets: isDeload ? 1 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 30 : 60,
+            rpe: '7',
+            notes: 'Controlled, full range',
+          },
+          {
+            name: 'Tricep Pushdowns',
+            sets: isDeload ? 1 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '7',
+            notes: 'Elbows tucked',
+          },
+        ],
+      };
+
+      // Lower Day A
+      const lowerA: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Lower A (Quad Emphasis)`,
+        exercises: [
+          {
+            name: 'Barbell Squats',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Full depth, chest up',
+          },
+          {
+            name: 'Romanian Deadlifts',
+            sets: isDeload ? 2 : 3,
+            reps: '8-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Hip hinge, hamstring focus',
+          },
+          {
+            name: 'Leg Press',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Full ROM, quad focus',
+          },
+          {
+            name: 'Leg Curls',
+            sets: isDeload ? 1 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 30 : 60,
+            rpe: '7',
+            notes: 'Hamstring isolation',
+          },
+          {
+            name: 'Hip Thrusts',
+            sets: isDeload ? 1 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 30 : 60,
+            rpe: '7',
+            notes: 'Glute activation and strengthening',
+          },
+          {
+            name: 'Standing Calf Raises',
+            sets: isDeload ? 1 : 2,
+            reps: '15-20',
+            weight: isDeload ? '-30%' : 'RPE 6-7',
+            tempo: '1-1-1-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '6-7',
+            notes: 'High reps for calves',
+          },
+        ],
+      };
+
+      weeks.push(upperA);
+      weeks.push(lowerA);
+    }
+  } else {
+    // Full Body split - 3 days per week
+    for (let week = 1; week <= durationWeeks; week++) {
+      const isDeload = week === durationWeeks;
+      const usePhase2 = week > 4;
+
+      // Full Body A
+      const fullBodyA: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Full Body A`,
+        exercises: [
+          {
+            name: 'Barbell Squats',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Primary compound, full depth',
+          },
+          {
+            name: 'Barbell Rows',
+            sets: isDeload ? 2 : 3,
+            reps: '8-10',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Chest to bar, back focus',
+          },
+          {
+            name: 'Barbell Bench Press',
+            sets: isDeload ? 2 : 3,
+            reps: '8-10',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '3-0-1-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Upper body push',
+          },
+          {
+            name: 'Lat Pulldowns',
+            sets: isDeload ? 1 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Back width, upper body pull',
+          },
+          {
+            name: 'Leg Press',
+            sets: isDeload ? 1 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Quad accessory',
+          },
+          {
+            name: 'Dumbbell Rows',
+            sets: isDeload ? 1 : 2,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Accessory row, single arm',
+          },
+        ],
+      };
+
+      // Full Body B
+      const fullBodyB: Week = {
+        weekNumber: week,
+        focus: `Week ${week} Full Body B`,
+        exercises: [
+          {
+            name: 'Deadlifts',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '5-6' : (usePhase2 ? '5-8' : '6-8'),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Primary hinge movement',
+          },
+          {
+            name: 'Overhead Press',
+            sets: isDeload ? 2 : 3,
+            reps: '6-8',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: 'controlled',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Overhead compound',
+          },
+          {
+            name: 'Pull-ups',
+            sets: isDeload ? 2 : 3,
+            reps: '8-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Pull movement variation',
+          },
+          {
+            name: 'Incline Dumbbell Press',
+            sets: isDeload ? 1 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Accessory press',
+          },
+          {
+            name: 'Bulgarian Split Squats',
+            sets: isDeload ? 1 : 2,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Single leg quad work',
+          },
+          {
+            name: 'Barbell Curls',
+            sets: isDeload ? 1 : 2,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '7',
+            notes: 'Arm accessory',
+          },
+        ],
+      };
+
+      weeks.push(fullBodyA);
+      weeks.push(fullBodyB);
+    }
+  }
+
+  return {
+    weeks,
+    deloadWeek: durationWeeks,
+    progressionStrategy: 'Progressive overload with RPE auto-regulation. Add weight when reps become too easy, or add reps within the range.',
+    notes: `Periodized ${splitType} program with ${durationWeeks} weeks. Weeks 1-4 focus on hypertrophy/strength base. Week ${durationWeeks} is deload week.`,
+  };
+}
+
 export function register(app: App, fastify: FastifyInstance) {
   // POST /api/programs/generate - Generate AI program
   fastify.post(
@@ -142,106 +838,62 @@ export function register(app: App, fastify: FastifyInstance) {
           durationWeeks = 8;
         }
 
-        // Generate program using AI
-        const prompt = `
-You are an expert personal trainer and program designer. Create a detailed, periodized ${durationWeeks}-week workout program for:
-
-Client Profile:
-- Name: ${clientProfile.name}
-- Age: ${clientProfile.age}
-- Experience: ${clientProfile.experience}
-- Goals: ${clientProfile.goals}
-- Training Frequency: ${clientProfile.trainingFrequency} days/week
-- Session Duration: ${clientProfile.sessionDuration} minutes
-- Available Equipment: ${clientProfile.equipment}
-- Injuries to avoid: ${clientProfile.injuries || 'None'}
-- Preferred exercises: ${clientProfile.preferredExercises || 'None'}
-- Height: ${clientProfile.height} cm
-- Weight: ${clientProfile.weight} kg
-- Body Fat: ${clientProfile.bodyFatPercentage || 'Unknown'}%
-- Strength Levels: Squat ${clientProfile.strength.squat1rm || 'Unknown'} kg, Bench ${clientProfile.strength.bench1rm || 'Unknown'} kg, Deadlift ${clientProfile.strength.deadlift1rm || 'Unknown'} kg
-
-Program Requirements:
-1. Split Type: ${splitType}
-2. Duration: ${durationWeeks} weeks
-3. Include progressive overload principles
-4. Include a deload week
-5. Adjust rep ranges based on goals (hypertrophy: 8-12, strength: 3-6, fat loss: 12-15)
-6. Include rest time recommendations
-7. Only include exercises that match available equipment
-8. Avoid any exercises that conflict with injuries
-9. Include tempo recommendations
-10. Use RPE (Rate of Perceived Exertion) 6-9 scale
-
-Return a structured program with weeks and exercises. Each exercise should include sets, reps, weight recommendations, tempo, rest periods, and RPE guidance.
-`;
-
-        // Generate program structure (using template due to timeout constraints)
+        // Generate detailed program with specific exercises
         let programData: ProgramData;
         try {
-          // Create a basic program structure without AI to avoid timeouts
-          const repsRange =
-            clientProfile.goals.toLowerCase().includes('strength') ? '3-5' :
-            clientProfile.goals.toLowerCase().includes('fat') ? '12-15' :
-            '8-12';
-
-          const restTime =
-            clientProfile.goals.toLowerCase().includes('strength') ? 300 :
-            clientProfile.goals.toLowerCase().includes('fat') ? 45 :
-            75;
-
-          programData = {
-            weeks: Array.from({ length: durationWeeks }, (_, i) => ({
-              weekNumber: i + 1,
-              focus: i === durationWeeks - 1 ? 'Deload' : 'General Strength',
-              exercises: [
-                {
-                  name: 'Main Compound',
-                  sets: i === durationWeeks - 1 ? 2 : 4,
-                  reps: repsRange,
-                  weight: 'Based on RPE',
-                  tempo: '2-1-2',
-                  restSeconds: restTime,
-                  rpe: '7-8',
-                },
-                {
-                  name: 'Secondary Movement',
-                  sets: i === durationWeeks - 1 ? 2 : 3,
-                  reps: repsRange,
-                  weight: 'Based on RPE',
-                  tempo: '2-0-2',
-                  restSeconds: Math.floor(restTime * 0.75),
-                  rpe: '6-7',
-                },
-              ],
-            })),
-            progressionStrategy: 'Progressive overload with auto-regulation based on RPE',
-          };
+          programData = generateDetailedProgram(
+            client,
+            splitType,
+            durationWeeks,
+            client.injuries || ''
+          );
         } catch (error) {
           app.logger.warn(
             { err: error },
-            'Failed to generate program, using minimal structure'
+            'Failed to generate detailed program, using fallback'
           );
-          // Minimal fallback
+          // Fallback minimal structure
           programData = {
             weeks: [
               {
                 weekNumber: 1,
-                focus: 'General Strength',
+                focus: 'Week 1 Compound Focus',
                 exercises: [
                   {
-                    name: 'Compound Movement',
-                    sets: 3,
+                    name: 'Barbell Squats',
+                    sets: 4,
                     reps: '8-12',
-                    weight: 'Based on RPE',
-                    tempo: '2-1-2',
-                    restSeconds: 90,
+                    weight: 'RPE 7-8',
+                    tempo: '3-0-2-0',
+                    restSeconds: 120,
                     rpe: '7-8',
+                    notes: 'Full depth, chest up',
+                  },
+                  {
+                    name: 'Barbell Bench Press',
+                    sets: 4,
+                    reps: '8-12',
+                    weight: 'RPE 7-8',
+                    tempo: '3-0-1-0',
+                    restSeconds: 120,
+                    rpe: '7-8',
+                    notes: 'Control descent, explosive press',
+                  },
+                  {
+                    name: 'Barbell Rows',
+                    sets: 4,
+                    reps: '8-12',
+                    weight: 'RPE 7-8',
+                    tempo: '2-0-2-0',
+                    restSeconds: 120,
+                    rpe: '7-8',
+                    notes: 'Chest to bar, retract scapula',
                   },
                 ],
               },
             ],
-            progressionStrategy: 'Linear progression',
+            progressionStrategy: 'Linear progression with RPE auto-regulation',
+            notes: 'Fallback program - use detailed generation for full training plans',
           };
         }
 
