@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1771473257989,
+      "tag": "20260219035417_condemned_sunset_bain",
+      "breakpoints": true
+    }
+  ]
+}
