@@ -1,13 +1,12 @@
 
 import "react-native-reanimated";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme, View, ActivityIndicator, Platform } from "react-native";
-import { useNetworkState } from "expo-network";
+import { useColorScheme, Platform } from "react-native";
 import {
   DarkTheme,
   DefaultTheme,
@@ -16,11 +15,10 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
-import Constants from "expo-constants";
 
-// Keep splash screen visible while we load resources
+// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync().catch(() => {
-  console.log('⚠️ Splash screen already hidden or not available');
+  // Splash screen already hidden or unavailable
 });
 
 export const unstable_settings = {
@@ -29,71 +27,30 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const networkState = useNetworkState();
   const [appIsReady, setAppIsReady] = useState(false);
   
   const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  console.log('🚀 APP STARTING - RootLayout Initializing');
-  console.log('📱 Platform:', Platform.OS);
-  console.log('🌐 Backend URL:', Constants.expoConfig?.extra?.backendUrl);
-
-  // Handle font loading and splash screen
+  // Hide splash screen as soon as fonts are ready OR after 1 second max
   useEffect(() => {
-    async function prepare() {
-      try {
-        console.log('⏳ Preparing app...');
-        console.log('📝 Fonts loaded:', fontsLoaded);
-        console.log('❌ Font error:', fontError);
-
-        // Wait for fonts to load or error
-        if (fontsLoaded || fontError) {
-          console.log('✅ Fonts ready (loaded or error), hiding splash...');
-          
-          // Give a tiny delay to ensure everything is mounted
-          await new Promise(resolve => setTimeout(resolve, 50));
-          
-          // Hide splash screen
-          await SplashScreen.hideAsync();
-          console.log('✅ Splash screen hidden successfully');
-          
-          // Mark app as ready
-          setAppIsReady(true);
-          console.log('✅ App is ready to render');
-        }
-      } catch (e) {
-        console.error('❌ Error in prepare():', e);
-        // Even on error, mark app as ready so it doesn't hang
-        setAppIsReady(true);
-      }
+    if (fontsLoaded || fontError) {
+      // Fonts loaded or errored - hide splash immediately
+      SplashScreen.hideAsync().catch(() => {});
+      setAppIsReady(true);
     }
-
-    prepare();
   }, [fontsLoaded, fontError]);
 
-  // CRITICAL: Aggressive timeout to force app to show
+  // CRITICAL: Emergency timeout - force app to show after 1 second NO MATTER WHAT
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.warn('⚠️⚠️⚠️ EMERGENCY TIMEOUT: Forcing app to show after 2 seconds');
-      
-      SplashScreen.hideAsync().catch((e) => {
-        console.log('Splash already hidden or error:', e);
-      });
-      
+    const emergencyTimeout = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
       setAppIsReady(true);
-      console.log('✅ App forced ready via timeout');
-    }, 2000); // 2 second emergency timeout
+    }, 1000); // 1 second maximum wait
 
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(emergencyTimeout);
   }, []);
-
-  // Log network state
-  useEffect(() => {
-    console.log('🌐 Network Connected:', networkState.isConnected);
-    console.log('🌐 Internet Reachable:', networkState.isInternetReachable);
-  }, [networkState.isConnected, networkState.isInternetReachable]);
 
   // Premium Dark Theme Configuration
   const CustomDarkTheme: Theme = {
@@ -121,24 +78,8 @@ export default function RootLayout() {
     },
   };
 
-  // CRITICAL: Show loading screen while preparing, but with timeout
-  // This prevents returning null which can cause infinite loading
-  if (!appIsReady) {
-    console.log('⏳ App not ready yet, showing loading screen');
-    return (
-      <View style={{ 
-        flex: 1, 
-        backgroundColor: '#0A0A0F', 
-        justifyContent: 'center', 
-        alignItems: 'center' 
-      }}>
-        <ActivityIndicator size="large" color="#FF7F00" />
-      </View>
-    );
-  }
-
-  console.log('✅ RENDERING MAIN APP');
-
+  // ALWAYS render the app - never return null or loading screen
+  // This prevents any possibility of infinite loading
   return (
     <>
       <StatusBar style="light" animated />
