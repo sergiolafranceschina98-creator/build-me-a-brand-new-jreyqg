@@ -1,24 +1,3 @@
-/**
- * Loading Button Component Template
- *
- * A button that shows a loading indicator when processing.
- * Commonly used for API calls, form submissions, etc.
- *
- * Features:
- * - Shows loading spinner when loading=true
- * - Disables interaction when loading
- * - Customizable styles
- * - Works with Pressable for better touch feedback
- *
- * Usage:
- * ```tsx
- * <LoadingButton
- *   loading={isSubmitting}
- *   onPress={handleSubmit}
- *   title="Submit"
- * />
- * ```
- */
 
 import React from "react";
 import {
@@ -28,7 +7,10 @@ import {
   StyleSheet,
   ViewStyle,
   TextStyle,
+  useColorScheme,
 } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '@/constants/Colors';
 
 interface LoadingButtonProps {
   onPress: () => void;
@@ -51,7 +33,30 @@ export function LoadingButton({
   textStyle,
   loadingColor,
 }: LoadingButtonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const currentColors = Colors[isDark ? 'dark' : 'light'];
   const isDisabled = disabled || loading;
+
+  const buttonContent = (
+    <>
+      {loading ? (
+        <ActivityIndicator
+          color={loadingColor || (variant === "outline" ? currentColors.primary : "#FFFFFF")}
+        />
+      ) : (
+        <Text
+          style={[
+            styles.text,
+            variant === "outline" ? { color: currentColors.primary } : { color: '#FFFFFF' },
+            textStyle,
+          ]}
+        >
+          {title}
+        </Text>
+      )}
+    </>
+  );
 
   return (
     <Pressable
@@ -59,49 +64,42 @@ export function LoadingButton({
       disabled={isDisabled}
       style={({ pressed }) => [
         styles.button,
-        styles[variant],
+        variant === "outline" && {
+          borderWidth: 2,
+          borderColor: currentColors.primary,
+          backgroundColor: 'transparent',
+        },
         pressed && !isDisabled && styles.pressed,
         isDisabled && styles.disabled,
         style,
       ]}
     >
-      {loading ? (
-        <ActivityIndicator
-          color={loadingColor || (variant === "outline" ? "#007AFF" : "#fff")}
+      {variant === 'primary' && !isDisabled ? (
+        <LinearGradient
+          colors={[currentColors.primary, currentColors.secondary]}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
         />
-      ) : (
-        <Text
-          style={[
-            styles.text,
-            styles[`${variant}Text` as keyof typeof styles],
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
-      )}
+      ) : null}
+      {buttonContent}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    height: 50,
-    borderRadius: 8,
+    height: 56,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
-  },
-  primary: {
-    backgroundColor: "#007AFF",
-  },
-  secondary: {
-    backgroundColor: "#5856D6",
-  },
-  outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#007AFF",
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
   pressed: {
     opacity: 0.8,
@@ -110,16 +108,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   text: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  primaryText: {
-    color: "#fff",
-  },
-  secondaryText: {
-    color: "#fff",
-  },
-  outlineText: {
-    color: "#007AFF",
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });

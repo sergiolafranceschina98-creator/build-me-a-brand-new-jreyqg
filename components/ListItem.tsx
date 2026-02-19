@@ -1,3 +1,4 @@
+
 import React from "react";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, useColorScheme, View, Text } from "react-native";
@@ -9,7 +10,7 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import Reanimated from "react-native-reanimated";
-import { appleRed, borderColor } from "@/constants/Colors";
+import { Colors } from "@/constants/Colors";
 import { IconCircle } from "./IconCircle";
 import { IconSymbol } from "./IconSymbol";
 
@@ -18,6 +19,7 @@ configureReanimatedLogger({ strict: false });
 export default function ListItem({ listId }: { listId: string }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const currentColors = Colors[isDark ? 'dark' : 'light'];
 
   const RightAction = (
     prog: SharedValue<number>,
@@ -37,7 +39,12 @@ export default function ListItem({ listId }: { listId: string }) {
         }}
       >
         <Reanimated.View style={[styleAnimation, styles.rightAction]}>
-          <IconSymbol name="trash.fill" size={24} color="white" />
+          <IconSymbol 
+            ios_icon_name="trash.fill" 
+            android_material_icon_name="delete" 
+            size={24} 
+            color="white" 
+          />
         </Reanimated.View>
       </Pressable>
     );
@@ -54,10 +61,12 @@ export default function ListItem({ listId }: { listId: string }) {
         overshootRight={false}
         enableContextMenu
       >
-        <View style={styles.listItemContainer}>
-          <Text style={[styles.listItemText, { color: isDark ? "#FFFFFF" : "#000000" }]}>{listId}</Text>
+        <View style={[styles.listItemContainer, { 
+          backgroundColor: currentColors.card,
+          borderBottomColor: currentColors.border 
+        }]}>
+          <Text style={[styles.listItemText, { color: currentColors.text }]}>{listId}</Text>
         </View>
-
       </ReanimatedSwipeable>
     </Animated.View>
   );
@@ -76,6 +85,7 @@ export const NicknameCircle = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const currentColors = Colors[isDark ? 'dark' : 'light'];
 
   return (
     <Text
@@ -84,7 +94,7 @@ export const NicknameCircle = ({
         isEllipsis && styles.ellipsisCircle,
         {
           backgroundColor: color,
-          borderColor: isDark ? "#000000" : "#ffffff",
+          borderColor: currentColors.background,
           marginLeft: index > 0 ? -6 : 0,
         },
       ]}
@@ -98,18 +108,20 @@ const styles = StyleSheet.create({
   listItemContainer: {
     padding: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: borderColor,
-    backgroundColor: "transparent",
+    borderRadius: 12,
+    marginBottom: 8,
   },
   listItemText: {
     fontSize: 16,
+    fontWeight: '500',
   },
   rightAction: {
     width: 200,
     height: 65,
-    backgroundColor: appleRed,
+    backgroundColor: '#F87171',
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 12,
   },
   swipeable: {
     width: "100%",
@@ -117,7 +129,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: borderColor,
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -148,7 +159,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "white",
     borderWidth: 1,
-    borderColor: "white",
     borderRadius: 16,
     padding: 1,
     width: 24,

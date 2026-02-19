@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   ActivityIndicator,
@@ -8,7 +9,8 @@ import {
   useColorScheme,
   ViewStyle,
 } from "react-native";
-import { appleBlue, zincColors } from "@/constants/Colors";
+import { Colors } from "@/constants/Colors";
+import { LinearGradient } from 'expo-linear-gradient';
 
 type ButtonVariant = "filled" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
@@ -36,36 +38,38 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const currentColors = Colors[isDark ? 'dark' : 'light'];
 
   const sizeStyles: Record<
     ButtonSize,
     { height: number; fontSize: number; padding: number }
   > = {
-    sm: { height: 36, fontSize: 14, padding: 12 },
-    md: { height: 44, fontSize: 16, padding: 16 },
-    lg: { height: 55, fontSize: 18, padding: 20 },
+    sm: { height: 40, fontSize: 14, padding: 12 },
+    md: { height: 52, fontSize: 16, padding: 16 },
+    lg: { height: 60, fontSize: 18, padding: 20 },
   };
 
   const getVariantStyle = () => {
     const baseStyle: ViewStyle = {
-      borderRadius: 12,
+      borderRadius: 16,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
+      overflow: 'hidden',
     };
 
     switch (variant) {
       case "filled":
         return {
           ...baseStyle,
-          backgroundColor: isDark ? zincColors[50] : zincColors[900],
+          backgroundColor: currentColors.primary,
         };
       case "outline":
         return {
           ...baseStyle,
           backgroundColor: "transparent",
-          borderWidth: 1,
-          borderColor: isDark ? zincColors[700] : zincColors[300],
+          borderWidth: 2,
+          borderColor: currentColors.primary,
         };
       case "ghost":
         return {
@@ -77,32 +81,20 @@ export const Button: React.FC<ButtonProps> = ({
 
   const getTextColor = () => {
     if (disabled) {
-      return isDark ? zincColors[500] : zincColors[400];
+      return currentColors.textSecondary;
     }
 
     switch (variant) {
       case "filled":
-        return isDark ? zincColors[900] : zincColors[50];
+        return '#FFFFFF';
       case "outline":
       case "ghost":
-        return appleBlue;
+        return currentColors.primary;
     }
   };
 
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={[
-        getVariantStyle(),
-        {
-          height: sizeStyles[size].height,
-          paddingHorizontal: sizeStyles[size].padding,
-          opacity: disabled ? 0.5 : 1,
-        },
-        style,
-      ]}
-    >
+  const buttonContent = (
+    <>
       {loading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
@@ -112,7 +104,6 @@ export const Button: React.FC<ButtonProps> = ({
               fontSize: sizeStyles[size].fontSize,
               color: getTextColor(),
               textAlign: "center",
-              marginBottom: 0,
               fontWeight: "700",
             },
             textStyle,
@@ -121,6 +112,32 @@ export const Button: React.FC<ButtonProps> = ({
           {children}
         </Text>
       )}
+    </>
+  );
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      style={({ pressed }) => [
+        getVariantStyle(),
+        {
+          height: sizeStyles[size].height,
+          paddingHorizontal: sizeStyles[size].padding,
+          opacity: disabled ? 0.5 : pressed ? 0.8 : 1,
+        },
+        style,
+      ]}
+    >
+      {variant === 'filled' && !disabled ? (
+        <LinearGradient
+          colors={[currentColors.primary, currentColors.secondary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : null}
+      {buttonContent}
     </Pressable>
   );
 };

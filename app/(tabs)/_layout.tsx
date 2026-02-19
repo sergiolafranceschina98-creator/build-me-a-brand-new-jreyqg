@@ -20,6 +20,13 @@ export default function TabLayout() {
           backgroundColor: themeColors.card,
           borderTopColor: themeColors.border,
           borderTopWidth: 1,
+          paddingTop: 8,
+          paddingBottom: 8,
+          height: 60,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
         },
       }}
     >

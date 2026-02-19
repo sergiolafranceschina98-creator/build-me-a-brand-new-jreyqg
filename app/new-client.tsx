@@ -14,6 +14,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useTheme } from '@react-navigation/native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, spacing, typography } from '@/styles/commonStyles';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function NewClientScreen() {
   const theme = useTheme();
@@ -59,7 +60,6 @@ export default function NewClientScreen() {
       // TODO: Backend Integration - POST /api/clients with form data → { id, name, age, ... }
       console.log('Creating client...');
       
-      // Temporary: Navigate back after "creating"
       setTimeout(() => {
         console.log('Client created successfully (mock)');
         router.back();
@@ -99,7 +99,7 @@ export default function NewClientScreen() {
         value={formData[field as keyof typeof formData]}
         onChangeText={(value) => handleInputChange(field, value)}
         placeholder={placeholder}
-        placeholderTextColor={themeColors.textSecondary}
+        placeholderTextColor={themeColors.textSecondary + '80'}
         keyboardType={keyboardType}
       />
     </View>
@@ -116,24 +116,36 @@ export default function NewClientScreen() {
           return (
             <TouchableOpacity
               key={index}
-              style={[
-                styles.pickerOption,
-                {
-                  backgroundColor: isSelected ? themeColors.primary : themeColors.card,
-                  borderColor: themeColors.border,
-                },
-              ]}
               onPress={() => handleInputChange(field, option.value)}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.pickerOptionText,
-                  { color: isSelected ? '#FFFFFF' : themeColors.text },
-                ]}
-              >
-                {option.label}
-              </Text>
+              {isSelected ? (
+                <LinearGradient
+                  colors={[themeColors.primary, themeColors.secondary]}
+                  style={styles.pickerOption}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.pickerOptionTextSelected}>
+                    {option.label}
+                  </Text>
+                </LinearGradient>
+              ) : (
+                <View
+                  style={[
+                    styles.pickerOption,
+                    {
+                      backgroundColor: themeColors.card,
+                      borderColor: themeColors.border,
+                      borderWidth: 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.pickerOptionText, { color: themeColors.text }]}>
+                    {option.label}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -148,7 +160,7 @@ export default function NewClientScreen() {
           headerShown: true,
           title: 'New Client',
           headerStyle: {
-            backgroundColor: themeColors.card,
+            backgroundColor: themeColors.background,
           },
           headerTintColor: themeColors.text,
           headerShadowVisible: false,
@@ -234,20 +246,22 @@ export default function NewClientScreen() {
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.submitButton,
-            { backgroundColor: themeColors.primary },
-            loading && styles.submitButtonDisabled,
-          ]}
           onPress={handleSubmit}
           disabled={loading}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.submitButtonText}>Create Client</Text>
-          )}
+          <LinearGradient
+            colors={[themeColors.primary, themeColors.secondary]}
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.submitButtonText}>Create Client</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -269,6 +283,7 @@ const styles = StyleSheet.create({
     ...typography.h3,
     marginTop: spacing.lg,
     marginBottom: spacing.md,
+    letterSpacing: -0.3,
   },
   inputContainer: {
     marginBottom: spacing.md,
@@ -276,13 +291,19 @@ const styles = StyleSheet.create({
   label: {
     ...typography.bodySmall,
     marginBottom: spacing.xs,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   input: {
     borderRadius: 12,
     padding: spacing.md,
     fontSize: 16,
     borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -292,12 +313,16 @@ const styles = StyleSheet.create({
   pickerOption: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 10,
   },
   pickerOptionText: {
     ...typography.bodySmall,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  pickerOptionTextSelected: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   row: {
     flexDirection: 'row',
@@ -310,12 +335,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   submitButton: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.lg,
     height: 56,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
   },
   submitButtonDisabled: {
     opacity: 0.6,
@@ -323,6 +353,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

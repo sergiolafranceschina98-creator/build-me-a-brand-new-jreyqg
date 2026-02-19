@@ -1,35 +1,38 @@
 
 import { StyleSheet } from 'react-native';
+import { Colors } from '@/constants/Colors';
 
-// AI Workout Builder Theme - Professional fitness app colors
+// Premium Dark Theme with Vibrant Orange Accent
 export const colors = {
   // Light theme
   light: {
-    background: '#F8F9FA',
+    background: '#F5F5F7',
     card: '#FFFFFF',
     text: '#1A1A1A',
-    textSecondary: '#6B7280',
-    primary: '#3B82F6', // Blue - trust and professionalism
-    secondary: '#10B981', // Green - health and growth
-    accent: '#8B5CF6', // Purple - AI/tech
-    highlight: '#F59E0B', // Amber - energy
-    border: '#E5E7EB',
+    textSecondary: '#6B6B7B',
+    primary: '#FF7F00', // Vibrant orange
+    secondary: '#FFA500', // Lighter orange
+    accent: '#FF7F00',
+    highlight: '#FFA500',
+    border: '#E0E0E8',
     error: '#EF4444',
     success: '#10B981',
+    warning: '#F59E0B',
   },
-  // Dark theme
+  // Dark theme (Premium)
   dark: {
-    background: '#0F172A',
-    card: '#1E293B',
-    text: '#F1F5F9',
-    textSecondary: '#94A3B8',
-    primary: '#60A5FA',
-    secondary: '#34D399',
-    accent: '#A78BFA',
-    highlight: '#FBBF24',
-    border: '#334155',
+    background: '#0A0A0F', // Deep sophisticated dark
+    card: '#1A1A24', // Slightly lighter for cards
+    text: '#FFFFFF', // Clean white text
+    textSecondary: '#A0A0B8', // Subtle grey text
+    primary: '#FF7F00', // Vibrant orange accent
+    secondary: '#FFA500', // Lighter orange
+    accent: '#FF7F00',
+    highlight: '#FFA500',
+    border: '#2A2A3A', // Subtle border
     error: '#F87171',
     success: '#34D399',
+    warning: '#FBBF24',
   },
 };
 
@@ -47,16 +50,19 @@ export const typography = {
     fontSize: 32,
     fontWeight: '700' as const,
     lineHeight: 40,
+    letterSpacing: -0.5,
   },
   h2: {
     fontSize: 24,
     fontWeight: '600' as const,
     lineHeight: 32,
+    letterSpacing: -0.3,
   },
   h3: {
     fontSize: 20,
     fontWeight: '600' as const,
     lineHeight: 28,
+    letterSpacing: -0.2,
   },
   body: {
     fontSize: 16,
@@ -80,13 +86,13 @@ export const commonStyles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: spacing.md,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
   button: {
     borderRadius: 12,
@@ -95,7 +101,7 @@ export const commonStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   input: {
-    borderRadius: 8,
+    borderRadius: 12,
     padding: spacing.md,
     fontSize: 16,
     borderWidth: 1,

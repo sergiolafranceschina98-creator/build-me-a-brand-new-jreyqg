@@ -12,6 +12,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@react-navigation/native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, spacing, typography } from '@/styles/commonStyles';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface ProgramDetails {
   id: string;
@@ -41,7 +42,6 @@ export default function ProgramDetailScreen() {
       setLoading(true);
       // TODO: Backend Integration - GET /api/programs/:id → full program with all workout sessions
       
-      // Temporary: Show empty state
       setProgram(null);
     } catch (error) {
       console.error('Error loading program:', error);
@@ -58,7 +58,7 @@ export default function ProgramDetailScreen() {
             headerShown: true,
             title: 'Program Details',
             headerStyle: {
-              backgroundColor: themeColors.card,
+              backgroundColor: themeColors.background,
             },
             headerTintColor: themeColors.text,
           }}
@@ -78,7 +78,7 @@ export default function ProgramDetailScreen() {
             headerShown: true,
             title: 'Program Details',
             headerStyle: {
-              backgroundColor: themeColors.card,
+              backgroundColor: themeColors.background,
             },
             headerTintColor: themeColors.text,
           }}
@@ -103,7 +103,7 @@ export default function ProgramDetailScreen() {
           headerShown: true,
           title: programName,
           headerStyle: {
-            backgroundColor: themeColors.card,
+            backgroundColor: themeColors.background,
           },
           headerTintColor: themeColors.text,
         }}
@@ -114,7 +114,10 @@ export default function ProgramDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.card, { backgroundColor: themeColors.card }]}>
+        <LinearGradient
+          colors={[themeColors.card, themeColors.card]}
+          style={[styles.card, { borderColor: themeColors.border }]}
+        >
           <Text style={[styles.cardTitle, { color: themeColors.text }]}>
             Program Overview
           </Text>
@@ -134,22 +137,27 @@ export default function ProgramDetailScreen() {
               {splitType}
             </Text>
           </View>
-        </View>
+        </LinearGradient>
 
-        <View style={[styles.comingSoonCard, { backgroundColor: themeColors.card }]}>
-          <IconSymbol
-            ios_icon_name="calendar"
-            android_material_icon_name="calendar-today"
-            size={48}
-            color={themeColors.textSecondary}
-          />
+        <LinearGradient
+          colors={[themeColors.primary + '15', themeColors.secondary + '10']}
+          style={styles.comingSoonCard}
+        >
+          <View style={[styles.iconCircle, { backgroundColor: themeColors.primary + '30' }]}>
+            <IconSymbol
+              ios_icon_name="calendar"
+              android_material_icon_name="calendar-today"
+              size={32}
+              color={themeColors.primary}
+            />
+          </View>
           <Text style={[styles.comingSoonText, { color: themeColors.text }]}>
             Workout Sessions
           </Text>
           <Text style={[styles.comingSoonSubtext, { color: themeColors.textSecondary }]}>
             Detailed workout sessions will be displayed here
           </Text>
-        </View>
+        </LinearGradient>
       </ScrollView>
     </View>
   );
@@ -179,18 +187,20 @@ const styles = StyleSheet.create({
     ...typography.body,
   },
   card: {
-    borderRadius: 16,
-    padding: spacing.md,
+    borderRadius: 20,
+    padding: spacing.lg,
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
     marginBottom: spacing.lg,
   },
   cardTitle: {
     ...typography.h3,
     marginBottom: spacing.md,
+    letterSpacing: -0.3,
   },
   infoRow: {
     flexDirection: 'row',
@@ -202,25 +212,32 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     ...typography.body,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   comingSoonCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     padding: spacing.xl,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   comingSoonText: {
     ...typography.h3,
-    marginTop: spacing.md,
+    marginBottom: spacing.xs,
   },
   comingSoonSubtext: {
     ...typography.bodySmall,
     textAlign: 'center',
-    marginTop: spacing.xs,
   },
 });

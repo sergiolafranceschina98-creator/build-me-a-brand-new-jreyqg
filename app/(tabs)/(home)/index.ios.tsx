@@ -1,5 +1,4 @@
 
-import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { useTheme } from '@react-navigation/native';
-import { IconSymbol } from '@/components/IconSymbol';
 import { colors, spacing, typography } from '@/styles/commonStyles';
+import { IconSymbol } from '@/components/IconSymbol';
+import { useTheme } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface Client {
   id: string;
@@ -24,8 +25,8 @@ interface Client {
 }
 
 export default function HomeScreen() {
-  const theme = useTheme();
   const router = useRouter();
+  const theme = useTheme();
   const isDark = theme.dark;
   const themeColors = isDark ? colors.dark : colors.light;
 
@@ -33,22 +34,18 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('HomeScreen mounted - loading clients');
     loadClients();
   }, []);
 
   const loadClients = async () => {
-    try {
-      console.log('Fetching clients from API');
-      setLoading(true);
-      // TODO: Backend Integration - GET /api/clients → [{ id, name, age, gender, goals, experience, created_at }]
-      // Temporary: Show empty state
+    console.log('Loading clients...');
+    setLoading(true);
+    // TODO: Backend Integration - GET /api/clients to fetch client list
+    // Simulated data for now
+    setTimeout(() => {
       setClients([]);
-    } catch (error) {
-      console.error('Error loading clients:', error);
-    } finally {
       setLoading(false);
-    }
+    }, 500);
   };
 
   const handleAddClient = () => {
@@ -61,72 +58,81 @@ export default function HomeScreen() {
     router.push(`/client/${clientId}`);
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <IconSymbol
-        ios_icon_name="person.2"
-        android_material_icon_name="group"
-        size={64}
-        color={themeColors.textSecondary}
-      />
-      <Text style={[styles.emptyTitle, { color: themeColors.text }]}>
-        No Clients Yet
-      </Text>
-      <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
-        Add your first client to start creating personalized workout programs
-      </Text>
-    </View>
-  );
+  const renderEmptyState = () => {
+    return (
+      <View style={styles.emptyContainer}>
+        <LinearGradient
+          colors={[themeColors.primary + '20', themeColors.secondary + '10']}
+          style={styles.emptyGradient}
+        >
+          <View style={styles.emptyIconContainer}>
+            <IconSymbol
+              ios_icon_name="person.2.fill"
+              android_material_icon_name="group"
+              size={64}
+              color={themeColors.primary}
+            />
+          </View>
+          <Text style={[styles.emptyTitle, { color: themeColors.text }]}>
+            No Clients Yet
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }]}>
+            Start building personalized workout programs by adding your first client
+          </Text>
+        </LinearGradient>
+      </View>
+    );
+  };
 
   const renderClient = (client: Client, index: number) => {
-    const experienceBadgeColor =
-      client.experience === 'beginner'
-        ? themeColors.success
-        : client.experience === 'intermediate'
-        ? themeColors.highlight
-        : themeColors.accent;
-
     return (
       <TouchableOpacity
         key={index}
-        style={[styles.clientCard, { backgroundColor: themeColors.card }]}
         onPress={() => handleClientPress(client.id)}
         activeOpacity={0.7}
       >
-        <View style={styles.clientHeader}>
-          <View style={styles.clientInfo}>
-            <Text style={[styles.clientName, { color: themeColors.text }]}>
-              {client.name}
-            </Text>
-            <View style={styles.clientMeta}>
-              <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
-                {client.age}
-              </Text>
-              <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
-                •
-              </Text>
-              <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
-                {client.gender}
-              </Text>
+        <LinearGradient
+          colors={[themeColors.card, themeColors.card]}
+          style={[styles.clientCard, { borderColor: themeColors.border }]}
+        >
+          <View style={styles.clientHeader}>
+            <View style={styles.clientAvatar}>
+              <LinearGradient
+                colors={[themeColors.primary, themeColors.secondary]}
+                style={styles.avatarGradient}
+              >
+                <Text style={styles.avatarText}>
+                  {client.name.charAt(0).toUpperCase()}
+                </Text>
+              </LinearGradient>
             </View>
+            <View style={styles.clientInfo}>
+              <Text style={[styles.clientName, { color: themeColors.text }]}>
+                {client.name}
+              </Text>
+              <View style={styles.clientMeta}>
+                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
+                  {client.age} years
+                </Text>
+                <View style={[styles.dot, { backgroundColor: themeColors.textSecondary }]} />
+                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }]}>
+                  {client.experience}
+                </Text>
+              </View>
+            </View>
+            <IconSymbol
+              ios_icon_name="chevron.right"
+              android_material_icon_name="chevron-right"
+              size={20}
+              color={themeColors.textSecondary}
+            />
           </View>
-          <View style={[styles.experienceBadge, { backgroundColor: experienceBadgeColor + '20' }]}>
-            <Text style={[styles.experienceBadgeText, { color: experienceBadgeColor }]}>
-              {client.experience}
+          <View style={[styles.clientGoals, { backgroundColor: themeColors.primary + '15' }]}>
+            <Text style={[styles.clientGoalsText, { color: themeColors.primary }]}>
+              {client.goals}
             </Text>
           </View>
-        </View>
-        <View style={styles.clientGoals}>
-          <IconSymbol
-            ios_icon_name="target"
-            android_material_icon_name="flag"
-            size={16}
-            color={themeColors.primary}
-          />
-          <Text style={[styles.clientGoalsText, { color: themeColors.textSecondary }]}>
-            {client.goals}
-          </Text>
-        </View>
+        </LinearGradient>
       </TouchableOpacity>
     );
   };
@@ -136,13 +142,29 @@ export default function HomeScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: 'AI Workout Builder',
+          title: 'Clients',
           headerLargeTitle: true,
           headerStyle: {
             backgroundColor: themeColors.background,
           },
           headerTintColor: themeColors.text,
-          headerShadowVisible: false,
+          headerRight: () => (
+            <TouchableOpacity onPress={handleAddClient} style={styles.addButton}>
+              <LinearGradient
+                colors={[themeColors.primary, themeColors.secondary]}
+                style={styles.addButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <IconSymbol
+                  ios_icon_name="plus"
+                  android_material_icon_name="add"
+                  size={20}
+                  color="#FFFFFF"
+                />
+              </LinearGradient>
+            </TouchableOpacity>
+          ),
         }}
       />
 
@@ -156,34 +178,37 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
-              Create personalized workout programs in under 60 seconds
-            </Text>
-          </View>
-
           {clients.length === 0 ? (
             renderEmptyState()
           ) : (
-            <View style={styles.clientList}>
+            <View style={styles.clientsList}>
               {clients.map((client, index) => renderClient(client, index))}
             </View>
           )}
         </ScrollView>
       )}
 
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: themeColors.primary }]}
-        onPress={handleAddClient}
-        activeOpacity={0.8}
-      >
-        <IconSymbol
-          ios_icon_name="plus"
-          android_material_icon_name="add"
-          size={28}
-          color="#FFFFFF"
-        />
-      </TouchableOpacity>
+      {clients.length > 0 && (
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={handleAddClient}
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={[themeColors.primary, themeColors.secondary]}
+            style={styles.floatingButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <IconSymbol
+              ios_icon_name="plus"
+              android_material_icon_name="add"
+              size={28}
+              color="#FFFFFF"
+            />
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -204,93 +229,119 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    marginBottom: spacing.lg,
-  },
-  subtitle: {
-    ...typography.bodySmall,
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: spacing.xxl * 2,
+    paddingHorizontal: spacing.xl,
+    marginTop: 60,
+  },
+  emptyGradient: {
+    width: '100%',
+    padding: spacing.xl,
+    borderRadius: 24,
+    alignItems: 'center',
+  },
+  emptyIconContainer: {
+    marginBottom: spacing.lg,
   },
   emptyTitle: {
-    ...typography.h3,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xs,
+    ...typography.h2,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
   emptySubtitle: {
-    ...typography.bodySmall,
+    ...typography.body,
     textAlign: 'center',
-    paddingHorizontal: spacing.xl,
+    opacity: 0.8,
   },
-  clientList: {
+  clientsList: {
     gap: spacing.md,
   },
   clientCard: {
-    borderRadius: 16,
-    padding: spacing.md,
+    borderRadius: 20,
+    padding: spacing.lg,
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
   clientHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.sm,
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  clientAvatar: {
+    marginRight: spacing.md,
+  },
+  avatarGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   clientInfo: {
     flex: 1,
   },
   clientName: {
     ...typography.h3,
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   clientMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   clientMetaText: {
     ...typography.bodySmall,
   },
-  experienceBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
-  },
-  experienceBadgeText: {
-    ...typography.caption,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   clientGoals: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: 12,
   },
   clientGoalsText: {
     ...typography.bodySmall,
-    textTransform: 'capitalize',
+    fontWeight: '600',
   },
-  fab: {
+  addButton: {
+    marginRight: spacing.sm,
+  },
+  addButtonGradient: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  floatingButton: {
     position: 'absolute',
-    bottom: spacing.lg,
+    bottom: 100,
     right: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  floatingButtonGradient: {
     width: 64,
     height: 64,
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });
