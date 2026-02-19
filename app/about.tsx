@@ -125,18 +125,6 @@ export default function AboutScreen() {
           </View>
         </View>
 
-        <View style={[styles.card, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Contact
-          </Text>
-          <Text style={[styles.bodyText, { color: themeColors.textSecondary }]}>
-            For questions, feedback, or support, please reach out to us at:
-          </Text>
-          <Text style={[styles.contactText, { color: themeColors.primary }]}>
-            support@aiworkoutbuilder.com
-          </Text>
-        </View>
-
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: themeColors.textSecondary }]}>
             Made with ❤️ for Personal Trainers
@@ -229,11 +217,6 @@ const styles = StyleSheet.create({
   featureText: {
     ...typography.body,
     flex: 1,
-  },
-  contactText: {
-    ...typography.body,
-    fontWeight: '600',
-    marginTop: spacing.sm,
   },
   footer: {
     alignItems: 'center',
