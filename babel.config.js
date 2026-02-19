@@ -1,6 +1,7 @@
 module.exports = function (api) {
   api.cache(true);
 
+  // Only enable editable components in development when explicitly enabled
   const EDITABLE_COMPONENTS =
     process.env.EXPO_PUBLIC_ENABLE_EDIT_MODE === "TRUE" &&
     process.env.NODE_ENV === "development"
@@ -11,7 +12,15 @@ module.exports = function (api) {
       : [];
 
   return {
-    presets: ["babel-preset-expo"],
+    presets: [
+      [
+        "babel-preset-expo",
+        {
+          // Optimize for faster builds
+          lazyImports: true,
+        }
+      ]
+    ],
     plugins: [
       [
         "module-resolver",
@@ -41,7 +50,8 @@ module.exports = function (api) {
       ],
       ...EDITABLE_COMPONENTS,
       "@babel/plugin-proposal-export-namespace-from",
-      "react-native-worklets/plugin", // react-native-worklets/plugin must be listed last!
+      // Worklets plugin can slow down builds - only enable if needed
+      // "react-native-worklets/plugin",
     ],
   };
 };

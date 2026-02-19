@@ -52,25 +52,43 @@ export default function HomeScreen() {
     setLoading(true);
 
     try {
-      const backendUrl = Constants.expoConfig?.extra?.backendUrl ||
-        'https://3v7m36dq7b8b7nhzwcy3b6cud7ap7qwr.app.specular.dev';
+      const backendUrl = Constants.expoConfig?.extra?.backendUrl;
+      
+      if (!backendUrl) {
+        console.error('[API] Backend URL not configured');
+        setClients([]);
+        setLoading(false);
+        return;
+      }
 
-      const response = await fetch(`${backendUrl}/api/clients`);
+      console.log('[API] Fetching from:', `${backendUrl}/api/clients`);
+      const response = await fetch(`${backendUrl}/api/clients`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      console.log('[API] Response status:', response.status);
 
       if (!response.ok) {
         let errMsg = `Failed to fetch clients (${response.status})`;
         try {
           const errBody = await response.json();
-          errMsg = errBody.error || errMsg;
-        } catch { /* ignore */ }
+          errMsg = errBody.error || errBody.message || errMsg;
+          console.error('[API] Error response:', errBody);
+        } catch (parseError) {
+          console.error('[API] Could not parse error response');
+        }
         throw new Error(errMsg);
       }
 
       const data: Client[] = await response.json();
-      console.log('[API] Clients loaded:', data.length);
+      console.log('[API] Clients loaded successfully:', data.length);
       setClients(data);
-    } catch (error) {
-      console.error('Error loading clients:', error);
+    } catch (error: any) {
+      console.error('[API] Error loading clients:', error?.message || 'Unknown error');
+      console.error('[API] Full error:', error);
       setClients([]);
     } finally {
       setLoading(false);

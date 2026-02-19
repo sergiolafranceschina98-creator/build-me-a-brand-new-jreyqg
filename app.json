@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "build-me-a-brand-new",
-    "slug": "build-me-a-brand-new",
+    "name": "AI Workout Builder",
+    "slug": "ai-workout-builder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-xpv.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/images/app-icon-xpv.png",
       "resizeMode": "contain",

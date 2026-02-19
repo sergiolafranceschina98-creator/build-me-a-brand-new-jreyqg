@@ -5,14 +5,19 @@ const fs = require('fs');
 
 const config = getDefaultConfig(__dirname);
 
-config.resolver.unstable_enablePackageExports = true;
-
-// Use turborepo to restore the cache when possible
+// Optimize caching for faster builds
 config.cacheStores = [
-    new FileStore({ root: path.join(__dirname, 'node_modules', '.cache', 'metro') }),
-  ];
+  new FileStore({ root: path.join(__dirname, 'node_modules', '.cache', 'metro') }),
+];
 
-// Custom server middleware to receive console.log messages from the app
+// Optimize resolver for faster module resolution
+config.resolver = {
+  ...config.resolver,
+  sourceExts: [...config.resolver.sourceExts, 'mjs', 'cjs'],
+  assetExts: [...config.resolver.assetExts.filter(ext => ext !== 'svg'), 'db'],
+};
+
+// Lightweight logging middleware (only for critical logs)
 const LOG_FILE_PATH = path.join(__dirname, '.natively', 'app_console.log');
 const MAX_LOG_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -25,18 +30,10 @@ if (!fs.existsSync(logDir)) {
 config.server = config.server || {};
 config.server.enhanceMiddleware = (middleware) => {
   return (req, res, next) => {
-
-    // DEBUG: log all metro bundle requests
-    if (req.url.includes('index.bundle') || req.url.includes('.bundle')) {
-      console.log('[METRO] Request:', req.method, req.url);
-    }
-
-    // Extract pathname without query params for matching
     const pathname = req.url.split('?')[0];
 
-    // Handle log receiving endpoint
+    // Handle log receiving endpoint (optimized)
     if (pathname === '/natively-logs' && req.method === 'POST') {
-      console.log('[NATIVELY-LOGS] Received POST request');
       let body = '';
       req.on('data', chunk => {
         body += chunk.toString();
@@ -54,20 +51,19 @@ config.server.enhanceMiddleware = (middleware) => {
           const sourceInfo = source ? `[${source}] ` : '';
           const logLine = `[${timestamp}] ${platformInfo}[${level}] ${sourceInfo}${message}\n`;
 
-          console.log('[NATIVELY-LOGS] Writing log:', logLine.trim());
-
-          // Rotate log file if too large
-          try {
-            if (fs.existsSync(LOG_FILE_PATH) && fs.statSync(LOG_FILE_PATH).size > MAX_LOG_SIZE) {
-              const content = fs.readFileSync(LOG_FILE_PATH, 'utf8');
-              const lines = content.split('\n');
-              fs.writeFileSync(LOG_FILE_PATH, lines.slice(lines.length / 2).join('\n'));
+          // Rotate log file if too large (async to avoid blocking)
+          setImmediate(() => {
+            try {
+              if (fs.existsSync(LOG_FILE_PATH) && fs.statSync(LOG_FILE_PATH).size > MAX_LOG_SIZE) {
+                const content = fs.readFileSync(LOG_FILE_PATH, 'utf8');
+                const lines = content.split('\n');
+                fs.writeFileSync(LOG_FILE_PATH, lines.slice(lines.length / 2).join('\n'));
+              }
+              fs.appendFileSync(LOG_FILE_PATH, logLine);
+            } catch (e) {
+              // Ignore file errors
             }
-          } catch (e) {
-            // Ignore rotation errors
-          }
-
-          fs.appendFileSync(LOG_FILE_PATH, logLine);
+          });
 
           res.writeHead(200, {
             'Content-Type': 'application/json',
@@ -75,7 +71,6 @@ config.server.enhanceMiddleware = (middleware) => {
           });
           res.end('{"status":"ok"}');
         } catch (e) {
-          console.error('[NATIVELY-LOGS] Error processing log:', e.message);
           res.writeHead(500, {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
@@ -86,9 +81,8 @@ config.server.enhanceMiddleware = (middleware) => {
       return;
     }
 
-    // Handle CORS preflight for log endpoint
+    // Handle CORS preflight
     if (pathname === '/natively-logs' && req.method === 'OPTIONS') {
-      console.log('[NATIVELY-LOGS] Received OPTIONS preflight request');
       res.writeHead(200, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -99,7 +93,6 @@ config.server.enhanceMiddleware = (middleware) => {
       return;
     }
 
-    // Pass through to default Metro middleware
     return middleware(req, res, next);
   };
 };
