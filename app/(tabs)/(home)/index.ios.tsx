@@ -5,6 +5,7 @@ import { colors, spacing, typography } from '@/styles/commonStyles';
 import React, { useState, useEffect } from 'react';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import Constants from 'expo-constants';
+import { IconSymbol } from '@/components/IconSymbol';
 import {
   View,
   Text,
@@ -15,7 +16,6 @@ import {
   useWindowDimensions,
   RefreshControl,
 } from 'react-native';
-import { IconSymbol } from '@/components/IconSymbol';
 
 interface Client {
   id: string;
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    minHeight: 400,
   },
   emptyIcon: {
     marginBottom: spacing.lg,
@@ -127,6 +128,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 300,
+  },
+  loadingText: {
+    marginTop: spacing.md,
+    fontSize: typography.sizes.md,
+    color: colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -204,18 +211,19 @@ export default function HomeScreen() {
       clearTimeout(timeoutId);
 
       console.log('[API] Response status:', response.status);
+      console.log('[API] Response ok:', response.ok);
 
       if (!response.ok) {
         throw new Error(`Failed to load clients: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('[API] Clients loaded successfully:', data.length);
+      console.log('[API] ✅ Clients loaded successfully:', data.length);
 
       setClients(data);
       setError(null);
     } catch (err: any) {
-      console.error('[API] Error loading clients:', err);
+      console.error('[API] ❌ Error loading clients:', err);
       
       if (err.name === 'AbortError') {
         setError('Request timed out. Please check your connection and try again.');
@@ -225,6 +233,7 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      console.log('[API] ✅ Loading complete - UI should now be visible');
     }
   };
 
@@ -237,12 +246,14 @@ export default function HomeScreen() {
 
   const handleAddClient = () => {
     console.log('👤 USER ACTION: Add Client Button Pressed');
+    console.log('👤 Navigating to: /new-client');
     router.push('/new-client');
   };
 
   const handleClientPress = (clientId: string) => {
     console.log('👤 USER ACTION: Client Card Pressed');
     console.log('👤 Client ID:', clientId);
+    console.log('👤 Navigating to: /client/' + clientId);
     router.push(`/client/${clientId}`);
   };
 
@@ -311,6 +322,7 @@ export default function HomeScreen() {
   const headerTitleText = 'AI Workout Builder';
   const headerSubtitleText = 'Manage your clients and programs';
   const addButtonText = 'Add New Client';
+  const loadingText = 'Loading clients...';
 
   return (
     <>
@@ -327,6 +339,7 @@ export default function HomeScreen() {
         {loading && !refreshing ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>{loadingText}</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>

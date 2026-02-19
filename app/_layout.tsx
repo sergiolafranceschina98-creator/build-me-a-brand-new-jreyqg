@@ -28,32 +28,46 @@ export const unstable_settings = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const networkState = useNetworkState();
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [isTimeout, setIsTimeout] = useState(false);
+  const [appReady, setAppReady] = useState(false);
 
   console.log('🚀 APP STARTING - RootLayout Initializing');
   console.log('📱 Platform:', Constants.platform);
   console.log('🌐 Backend URL:', Constants.expoConfig?.extra?.backendUrl);
 
-  // Add timeout to prevent infinite loading
+  // Handle font loading errors
+  useEffect(() => {
+    if (error) {
+      console.error('❌ Font loading error:', error);
+      // Proceed anyway to prevent blocking
+      setAppReady(true);
+      SplashScreen.hideAsync();
+    }
+  }, [error]);
+
+  // Add aggressive timeout to prevent infinite loading
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!loaded) {
-        console.log('⚠️ FONT LOADING TIMEOUT - Proceeding anyway');
-        setIsTimeout(true);
-        SplashScreen.hideAsync();
+      if (!appReady) {
+        console.warn('⚠️ App initialization timed out (3s). Forcing app to render.');
+        setAppReady(true);
+        SplashScreen.hideAsync().catch(() => {});
       }
-    }, 5000); // 5 second timeout
+    }, 3000); // 3 second timeout - aggressive
 
     return () => clearTimeout(timeout);
-  }, [loaded]);
+  }, [appReady]);
 
+  // Hide splash screen when fonts are loaded
   useEffect(() => {
     if (loaded) {
       console.log('✅ FONTS LOADED - Hiding Splash Screen');
-      SplashScreen.hideAsync();
+      setAppReady(true);
+      SplashScreen.hideAsync().catch((err) => {
+        console.error('Error hiding splash:', err);
+      });
     }
   }, [loaded]);
 
@@ -66,14 +80,9 @@ export default function RootLayout() {
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
 
-  // Show loading screen with timeout
-  if (!loaded && !isTimeout) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF7F00" />
-        <Text style={styles.loadingText}>Loading AI Workout Builder...</Text>
-      </View>
-    );
+  // CRITICAL: Don't block rendering - show app immediately if timeout occurs
+  if (!appReady) {
+    return null; // Let native splash screen handle this
   }
 
   // Premium Dark Theme Configuration
@@ -127,18 +136,3 @@ export default function RootLayout() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgb(10, 10, 15)',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: 'rgb(255, 255, 255)',
-    fontWeight: '600',
-  },
-});

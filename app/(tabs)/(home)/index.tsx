@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    minHeight: 400,
   },
   emptyIcon: {
     marginBottom: spacing.lg,
@@ -128,6 +129,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 300,
+  },
+  loadingText: {
+    marginTop: spacing.md,
+    fontSize: typography.sizes.md,
+    color: colors.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -196,7 +203,7 @@ export default function HomeScreen() {
       console.log('[API] Fetching from:', url);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(url, {
         signal: controller.signal,
@@ -212,12 +219,12 @@ export default function HomeScreen() {
       }
 
       const data = await response.json();
-      console.log('[API] Clients loaded successfully:', data.length);
+      console.log('[API] ✅ Clients loaded successfully:', data.length);
 
       setClients(data);
       setError(null);
     } catch (err: any) {
-      console.error('[API] Error loading clients:', err);
+      console.error('[API] ❌ Error loading clients:', err);
       
       if (err.name === 'AbortError') {
         setError('Request timed out. Please check your connection and try again.');
@@ -227,7 +234,7 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
-      console.log('[API] Loading complete');
+      console.log('[API] ✅ Loading complete - UI should now be visible');
     }
   };
 
@@ -316,6 +323,7 @@ export default function HomeScreen() {
   const headerTitleText = 'AI Workout Builder';
   const headerSubtitleText = 'Manage your clients and programs';
   const addButtonText = 'Add New Client';
+  const loadingText = 'Loading clients...';
 
   return (
     <>
@@ -332,6 +340,7 @@ export default function HomeScreen() {
         {loading && !refreshing ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>{loadingText}</Text>
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
