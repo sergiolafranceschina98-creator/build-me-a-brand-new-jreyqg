@@ -60,13 +60,16 @@ export default function NewClientScreen() {
       // TODO: Backend Integration - POST /api/clients with form data → { id, name, age, ... }
       console.log('Creating client...');
       
-      setTimeout(() => {
-        console.log('Client created successfully (mock)');
-        router.back();
-      }, 1000);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Client created successfully (mock)');
+      setLoading(false);
+      
+      // Navigate back to home screen
+      router.back();
     } catch (error) {
       console.error('Error creating client:', error);
-    } finally {
       setLoading(false);
     }
   };
