@@ -239,7 +239,7 @@ export default function HomeScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      console.log('🏠 HOME SCREEN - Screen Focused');
+      console.log('🏠 HOME SCREEN (iOS) - Screen Focused');
       loadClients();
     }, [])
   );
