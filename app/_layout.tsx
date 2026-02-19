@@ -16,6 +16,7 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
+import Constants from "expo-constants";
 // Note: Error logging is auto-initialized via index.ts import
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -32,33 +33,47 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  console.log('🚀 RootLayout: App initializing...');
-  console.log('🎨 RootLayout: Color scheme:', colorScheme);
+  console.log('🚀 ============================================');
+  console.log('🚀 APP STARTING - RootLayout Initializing');
+  console.log('🚀 ============================================');
+  console.log('📱 Platform:', Constants.platform);
+  console.log('📦 App Version:', Constants.expoConfig?.version);
+  console.log('🎨 Color Scheme:', colorScheme);
+  console.log('🌐 Backend URL:', Constants.expoConfig?.extra?.backendUrl);
+  console.log('🔧 Dev Mode:', __DEV__);
 
   useEffect(() => {
     if (loaded) {
-      console.log('✅ RootLayout: Fonts loaded, hiding splash screen');
+      console.log('✅ ============================================');
+      console.log('✅ FONTS LOADED - Hiding Splash Screen');
+      console.log('✅ ============================================');
       SplashScreen.hideAsync();
+    } else {
+      console.log('⏳ Waiting for fonts to load...');
     }
   }, [loaded]);
 
   React.useEffect(() => {
-    console.log('🌐 RootLayout: Network state:', {
-      isConnected: networkState.isConnected,
-      isInternetReachable: networkState.isInternetReachable,
-      type: networkState.type,
-    });
+    console.log('🌐 ============================================');
+    console.log('🌐 NETWORK STATE CHECK');
+    console.log('🌐 ============================================');
+    console.log('🌐 Connected:', networkState.isConnected);
+    console.log('🌐 Internet Reachable:', networkState.isInternetReachable);
+    console.log('🌐 Connection Type:', networkState.type);
 
     if (
       !networkState.isConnected &&
       networkState.isInternetReachable === false
     ) {
-      console.log('🔌 RootLayout: Offline mode detected - Changes will be synced when back online');
+      console.log('🔌 ============================================');
+      console.log('🔌 OFFLINE MODE DETECTED');
+      console.log('🔌 Changes will sync when back online');
+      console.log('🔌 ============================================');
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
 
   if (!loaded) {
-    console.log('⏳ RootLayout: Waiting for fonts to load...');
+    console.log('⏳ Fonts not loaded yet, returning null...');
     return null;
   }
 
@@ -88,7 +103,10 @@ export default function RootLayout() {
     },
   };
 
-  console.log('✅ RootLayout: Rendering app with theme');
+  console.log('✅ ============================================');
+  console.log('✅ RENDERING APP WITH THEME');
+  console.log('✅ Theme:', colorScheme === "dark" ? "Dark" : "Light");
+  console.log('✅ ============================================');
 
   return (
     <>
