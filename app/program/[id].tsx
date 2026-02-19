@@ -258,7 +258,7 @@ export default function ProgramDetailScreen() {
             </View>
             <Text style={[styles.modalTitle, { color: themeColors.text }]}>Delete Program</Text>
             <Text style={[styles.modalMessage, { color: themeColors.textSecondary }]}>
-              Are you sure you want to delete "{programName}"? This will also delete all associated sessions.
+              Are you sure you want to delete this program? This will also delete all associated sessions.
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity
@@ -337,68 +337,153 @@ export default function ProgramDetailScreen() {
                         <View style={[styles.weekBadge, { backgroundColor: themeColors.primary }]}>
                           <Text style={styles.weekBadgeText}>W{week}</Text>
                         </View>
-                        <Text style={[styles.weekTitle, { color: themeColors.text }]}>
-                          Week {week}
-                        </Text>
-                        <Text style={[styles.weekSubtitle, { color: themeColors.textSecondary }]}>
-                          {weekSessions.length} sessions
-                        </Text>
+                        <View>
+                          <Text style={[styles.weekTitle, { color: themeColors.text }]}>
+                            Week {week}
+                          </Text>
+                          <Text style={[styles.weekSubtitle, { color: themeColors.textSecondary }]}>
+                            {weekSessions.length} sessions
+                          </Text>
+                        </View>
                       </View>
                       <IconSymbol
                         ios_icon_name={isExpanded ? 'chevron.up' : 'chevron.down'}
                         android_material_icon_name={isExpanded ? 'expand-less' : 'expand-more'}
-                        size={20}
+                        size={24}
                         color={themeColors.primary}
                       />
                     </LinearGradient>
                   </TouchableOpacity>
 
-                  {isExpanded && weekSessions.map((session, sIdx) => (
-                    <View
-                      key={sIdx}
-                      style={[styles.sessionCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
-                    >
-                      <View style={styles.sessionHeader}>
-                        <View style={[styles.dayBadge, { backgroundColor: themeColors.secondary + '30' }]}>
-                          <Text style={[styles.dayBadgeText, { color: themeColors.secondary }]}>
-                            Day {session.day_number}
-                          </Text>
-                        </View>
-                        <Text style={[styles.sessionName, { color: themeColors.text }]}>
-                          {session.session_name}
-                        </Text>
-                        {session.completed && (
-                          <View style={[styles.completedBadge, { backgroundColor: themeColors.success + '20' }]}>
-                            <IconSymbol
-                              ios_icon_name="checkmark.circle.fill"
-                              android_material_icon_name="check-circle"
-                              size={16}
-                              color={themeColors.success}
-                            />
+                  {isExpanded && weekSessions.map((session, sIdx) => {
+                    const exerciseName = session.session_name;
+                    const dayNumber = session.day_number;
+                    const exerciseCount = session.exercises?.length ?? 0;
+                    const isCompleted = session.completed;
+
+                    return (
+                      <View
+                        key={sIdx}
+                        style={[styles.sessionCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+                      >
+                        <View style={styles.sessionHeader}>
+                          <View style={[styles.dayBadge, { backgroundColor: themeColors.secondary + '30' }]}>
+                            <Text style={[styles.dayBadgeText, { color: themeColors.secondary }]}>
+                              Day {dayNumber}
+                            </Text>
                           </View>
+                          <Text style={[styles.sessionName, { color: themeColors.text }]}>
+                            {exerciseName}
+                          </Text>
+                          {isCompleted && (
+                            <View style={[styles.completedBadge, { backgroundColor: themeColors.success + '20' }]}>
+                              <IconSymbol
+                                ios_icon_name="checkmark.circle.fill"
+                                android_material_icon_name="check-circle"
+                                size={16}
+                                color={themeColors.success}
+                              />
+                            </View>
+                          )}
+                        </View>
+
+                        {Array.isArray(session.exercises) && exerciseCount > 0 ? (
+                          <View style={styles.exercisesList}>
+                            <Text style={[styles.exercisesHeader, { color: themeColors.textSecondary }]}>
+                              Exercises ({exerciseCount})
+                            </Text>
+                            {session.exercises.map((ex: any, eIdx: number) => {
+                              const exName = ex.name || ex.exercise_name || `Exercise ${eIdx + 1}`;
+                              const setsText = ex.sets ? `${ex.sets} sets` : '';
+                              const repsText = ex.reps ? `${ex.reps} reps` : '';
+                              const restText = ex.rest ? `${ex.rest} rest` : '';
+                              const notesText = ex.notes || '';
+
+                              return (
+                                <View
+                                  key={eIdx}
+                                  style={[styles.exerciseCard, { backgroundColor: themeColors.background, borderColor: themeColors.border }]}
+                                >
+                                  <View style={styles.exerciseHeader}>
+                                    <View style={[styles.exerciseNumber, { backgroundColor: themeColors.primary + '20' }]}>
+                                      <Text style={[styles.exerciseNumberText, { color: themeColors.primary }]}>
+                                        {eIdx + 1}
+                                      </Text>
+                                    </View>
+                                    <Text style={[styles.exerciseName, { color: themeColors.text }]}>
+                                      {exName}
+                                    </Text>
+                                  </View>
+                                  
+                                  <View style={styles.exerciseDetails}>
+                                    {setsText ? (
+                                      <View style={styles.exerciseDetailRow}>
+                                        <IconSymbol
+                                          ios_icon_name="repeat"
+                                          android_material_icon_name="repeat"
+                                          size={16}
+                                          color={themeColors.primary}
+                                        />
+                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
+                                          {setsText}
+                                        </Text>
+                                      </View>
+                                    ) : null}
+                                    
+                                    {repsText ? (
+                                      <View style={styles.exerciseDetailRow}>
+                                        <IconSymbol
+                                          ios_icon_name="number"
+                                          android_material_icon_name="tag"
+                                          size={16}
+                                          color={themeColors.secondary}
+                                        />
+                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
+                                          {repsText}
+                                        </Text>
+                                      </View>
+                                    ) : null}
+                                    
+                                    {restText ? (
+                                      <View style={styles.exerciseDetailRow}>
+                                        <IconSymbol
+                                          ios_icon_name="timer"
+                                          android_material_icon_name="schedule"
+                                          size={16}
+                                          color={themeColors.success}
+                                        />
+                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
+                                          {restText}
+                                        </Text>
+                                      </View>
+                                    ) : null}
+                                  </View>
+
+                                  {notesText ? (
+                                    <View style={[styles.exerciseNotes, { backgroundColor: themeColors.primary + '10', borderColor: themeColors.primary + '30' }]}>
+                                      <IconSymbol
+                                        ios_icon_name="note.text"
+                                        android_material_icon_name="description"
+                                        size={14}
+                                        color={themeColors.primary}
+                                      />
+                                      <Text style={[styles.exerciseNotesText, { color: themeColors.textSecondary }]}>
+                                        {notesText}
+                                      </Text>
+                                    </View>
+                                  ) : null}
+                                </View>
+                              );
+                            })}
+                          </View>
+                        ) : (
+                          <Text style={[styles.noExercisesText, { color: themeColors.textSecondary }]}>
+                            No exercises for this session
+                          </Text>
                         )}
                       </View>
-
-                      {Array.isArray(session.exercises) && session.exercises.length > 0 && (
-                        <View style={styles.exercisesList}>
-                          {session.exercises.map((ex: any, eIdx: number) => (
-                            <View
-                              key={eIdx}
-                              style={[styles.exerciseRow, { borderTopColor: themeColors.border }]}
-                            >
-                              <Text style={[styles.exerciseName, { color: themeColors.text }]}>
-                                {ex.name || ex.exercise_name || `Exercise ${eIdx + 1}`}
-                              </Text>
-                              <Text style={[styles.exerciseMeta, { color: themeColors.textSecondary }]}>
-                                {ex.sets ? `${ex.sets} × ${ex.reps || '-'}` : ''}
-                                {ex.rest ? `  •  ${ex.rest} rest` : ''}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               );
             })}
@@ -503,43 +588,51 @@ const styles = StyleSheet.create({
   weekHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   weekBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   weekBadgeText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   weekTitle: {
     ...typography.body,
     fontWeight: '700',
+    fontSize: 16,
   },
   weekSubtitle: {
     ...typography.bodySmall,
+    fontSize: 13,
+    marginTop: 2,
   },
   sessionCard: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: spacing.md,
     borderWidth: 1,
-    marginTop: spacing.sm,
-    marginLeft: spacing.md,
+    marginTop: spacing.md,
+    marginLeft: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   sessionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   dayBadge: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: 8,
   },
   dayBadgeText: {
@@ -548,7 +641,8 @@ const styles = StyleSheet.create({
   },
   sessionName: {
     ...typography.body,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 16,
     flex: 1,
   },
   completedBadge: {
@@ -561,17 +655,84 @@ const styles = StyleSheet.create({
   exercisesList: {
     marginTop: spacing.xs,
   },
-  exerciseRow: {
-    paddingVertical: spacing.xs,
-    borderTopWidth: 1,
+  exercisesHeader: {
+    ...typography.bodySmall,
+    fontWeight: '700',
+    fontSize: 13,
+    marginBottom: spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  exerciseCard: {
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  exerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  exerciseNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  exerciseNumberText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   exerciseName: {
+    ...typography.body,
+    fontWeight: '700',
+    fontSize: 15,
+    flex: 1,
+  },
+  exerciseDetails: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  exerciseDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  exerciseDetailText: {
     ...typography.bodySmall,
+    fontSize: 14,
     fontWeight: '600',
   },
-  exerciseMeta: {
-    ...typography.caption,
-    marginTop: 2,
+  exerciseNotes: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    padding: spacing.sm,
+    borderRadius: 8,
+    marginTop: spacing.sm,
+    borderWidth: 1,
+  },
+  exerciseNotesText: {
+    ...typography.bodySmall,
+    fontSize: 13,
+    flex: 1,
+    lineHeight: 18,
+  },
+  noExercisesText: {
+    ...typography.bodySmall,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
   emptySessionsCard: {
     borderRadius: 20,
