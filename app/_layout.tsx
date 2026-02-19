@@ -1,3 +1,4 @@
+
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
@@ -53,35 +54,37 @@ export default function RootLayout() {
     return null;
   }
 
-  const CustomDefaultTheme: Theme = {
-    ...DefaultTheme,
-    dark: false,
-    colors: {
-      primary: "rgb(0, 122, 255)", // System Blue
-      background: "rgb(242, 242, 247)", // Light mode background
-      card: "rgb(255, 255, 255)", // White cards/surfaces
-      text: "rgb(0, 0, 0)", // Black text for light mode
-      border: "rgb(216, 216, 220)", // Light gray for separators/borders
-      notification: "rgb(255, 59, 48)", // System Red
-    },
-  };
-
+  // Premium Dark Theme Configuration
   const CustomDarkTheme: Theme = {
     ...DarkTheme,
     colors: {
-      primary: "rgb(10, 132, 255)", // System Blue (Dark Mode)
-      background: "rgb(1, 1, 1)", // True black background for OLED displays
-      card: "rgb(28, 28, 30)", // Dark card/surface color
-      text: "rgb(255, 255, 255)", // White text for dark mode
-      border: "rgb(44, 44, 46)", // Dark gray for separators/borders
-      notification: "rgb(255, 69, 58)", // System Red (Dark Mode)
+      primary: "rgb(255, 127, 0)", // Vibrant orange
+      background: "rgb(10, 10, 15)", // Deep sophisticated dark (#0A0A0F)
+      card: "rgb(26, 26, 36)", // Elevated card background (#1A1A24)
+      text: "rgb(255, 255, 255)", // Clean white text
+      border: "rgb(42, 42, 58)", // Subtle border (#2A2A3A)
+      notification: "rgb(255, 127, 0)", // Orange notifications
     },
   };
+
+  const CustomLightTheme: Theme = {
+    ...DefaultTheme,
+    dark: false,
+    colors: {
+      primary: "rgb(255, 127, 0)", // Vibrant orange
+      background: "rgb(245, 245, 247)", // Light background
+      card: "rgb(255, 255, 255)", // White cards
+      text: "rgb(26, 26, 26)", // Dark text
+      border: "rgb(224, 224, 232)", // Light border
+      notification: "rgb(255, 127, 0)", // Orange notifications
+    },
+  };
+
   return (
     <>
-      <StatusBar style="auto" animated />
+      <StatusBar style="light" animated />
         <ThemeProvider
-          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+          value={colorScheme === "dark" ? CustomDarkTheme : CustomDarkTheme}
         >
           <WidgetProvider>
             <GestureHandlerRootView>
@@ -89,7 +92,7 @@ export default function RootLayout() {
               {/* Main app with tabs */}
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             </Stack>
-            <SystemBars style={"auto"} />
+            <SystemBars style={"light"} />
             </GestureHandlerRootView>
           </WidgetProvider>
         </ThemeProvider>
