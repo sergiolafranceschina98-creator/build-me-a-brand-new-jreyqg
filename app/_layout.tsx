@@ -6,7 +6,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useColorScheme, View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { useColorScheme } from "react-native";
 import { useNetworkState } from "expo-network";
 import {
   DarkTheme,
@@ -31,45 +31,36 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [appReady, setAppReady] = useState(false);
 
   console.log('🚀 APP STARTING - RootLayout Initializing');
   console.log('📱 Platform:', Constants.platform);
   console.log('🌐 Backend URL:', Constants.expoConfig?.extra?.backendUrl);
 
-  // Handle font loading errors
+  // CRITICAL FIX: Hide splash screen as soon as fonts load OR on error OR after timeout
   useEffect(() => {
-    if (error) {
-      console.error('❌ Font loading error:', error);
-      // Proceed anyway to prevent blocking
-      setAppReady(true);
-      SplashScreen.hideAsync();
+    async function hideSplash() {
+      if (loaded || error) {
+        console.log('✅ FONTS LOADED - Hiding Splash Screen');
+        try {
+          await SplashScreen.hideAsync();
+        } catch (err) {
+          console.error('Error hiding splash:', err);
+        }
+      }
     }
-  }, [error]);
 
-  // Add aggressive timeout to prevent infinite loading
+    hideSplash();
+  }, [loaded, error]);
+
+  // Aggressive timeout to force splash screen to hide
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!appReady) {
-        console.warn('⚠️ App initialization timed out (3s). Forcing app to render.');
-        setAppReady(true);
-        SplashScreen.hideAsync().catch(() => {});
-      }
-    }, 3000); // 3 second timeout - aggressive
+      console.warn('⚠️ App initialization timed out (2s). Forcing splash to hide.');
+      SplashScreen.hideAsync().catch(() => {});
+    }, 2000); // 2 second timeout
 
     return () => clearTimeout(timeout);
-  }, [appReady]);
-
-  // Hide splash screen when fonts are loaded
-  useEffect(() => {
-    if (loaded) {
-      console.log('✅ FONTS LOADED - Hiding Splash Screen');
-      setAppReady(true);
-      SplashScreen.hideAsync().catch((err) => {
-        console.error('Error hiding splash:', err);
-      });
-    }
-  }, [loaded]);
+  }, []);
 
   React.useEffect(() => {
     console.log('🌐 Network Connected:', networkState.isConnected);
@@ -79,11 +70,6 @@ export default function RootLayout() {
       console.log('🔌 OFFLINE MODE DETECTED');
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
-
-  // CRITICAL: Don't block rendering - show app immediately if timeout occurs
-  if (!appReady) {
-    return null; // Let native splash screen handle this
-  }
 
   // Premium Dark Theme Configuration
   const CustomDarkTheme: Theme = {
