@@ -223,18 +223,18 @@ function generateDetailedProgram(
   const setsPhase2 = isStrengthGoal ? 4 : 3;
 
   const weeks: Week[] = [];
+  let globalDayNumber = 0; // Track absolute day number across all weeks
 
   if (splitType === 'Push/Pull/Legs') {
     // PPL split - 6 days per week
     for (let week = 1; week <= durationWeeks; week++) {
       const isDeload = week === durationWeeks;
-      const dayInWeek = (week - 1) % 3; // Determines which phase (Phase 1 or Phase 2)
       const usePhase2 = week > 4; // Switch to phase 2 after week 4
 
-      // Push Day
-      const pushDay: Week = {
+      // Push Day 1
+      const pushDay1: Week = {
         weekNumber: week,
-        focus: `Week ${week} Push (Chest Focus)`,
+        focus: `Week ${week} - Day 1: Push (Chest Focus)`,
         exercises: [
           {
             name: 'Barbell Bench Press',
@@ -299,10 +299,10 @@ function generateDetailedProgram(
         ],
       };
 
-      // Pull Day
-      const pullDay: Week = {
+      // Pull Day 1
+      const pullDay1: Week = {
         weekNumber: week,
-        focus: `Week ${week} Pull (Back Focus)`,
+        focus: `Week ${week} - Day 2: Pull (Back Focus)`,
         exercises: [
           {
             name: 'Barbell Rows',
@@ -357,10 +357,10 @@ function generateDetailedProgram(
         ],
       };
 
-      // Legs Day
-      const legsDay: Week = {
+      // Legs Day 1
+      const legsDay1: Week = {
         weekNumber: week,
-        focus: `Week ${week} Legs (Quad Emphasis)`,
+        focus: `Week ${week} - Day 3: Legs (Quad Emphasis)`,
         exercises: [
           {
             name: 'Barbell Squats',
@@ -425,9 +425,216 @@ function generateDetailedProgram(
         ],
       };
 
-      weeks.push(pushDay);
-      weeks.push(pullDay);
-      weeks.push(legsDay);
+      // Push Day 2
+      const pushDay2: Week = {
+        weekNumber: week,
+        focus: `Week ${week} - Day 4: Push (Shoulder Focus)`,
+        exercises: [
+          {
+            name: 'Dumbbell Shoulder Press',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Full range of motion, strict form',
+          },
+          {
+            name: 'Machine Chest Press',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Controlled movement, full range',
+          },
+          {
+            name: 'Lateral Raises',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Lead with elbows, slight bend',
+          },
+          {
+            name: 'Close-Grip Bench Press',
+            sets: isDeload ? 2 : 3,
+            reps: '8-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Tricep focus, hands closer than shoulder width',
+          },
+          {
+            name: 'Front Raises',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Anterior shoulder emphasis',
+          },
+          {
+            name: 'Dumbbell Tricep Extensions',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Full range of motion overhead',
+          },
+        ],
+      };
+
+      // Pull Day 2
+      const pullDay2: Week = {
+        weekNumber: week,
+        focus: `Week ${week} - Day 5: Pull (Lat Focus)`,
+        exercises: [
+          {
+            name: 'Pull-ups',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '6-8' : (usePhase2 ? '8-10' : '6-8'),
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Full range of motion, lat focus',
+          },
+          {
+            name: 'Seated Cable Rows',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Chest to machine, retract scapula',
+          },
+          {
+            name: 'Machine Lat Pulldowns',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Wide grip for lat emphasis',
+          },
+          {
+            name: 'Dumbbell Hammer Curls',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Neutral grip, full range',
+          },
+          {
+            name: 'Reverse Flyes',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Rear delt emphasis, squeeze at top',
+          },
+          {
+            name: 'Cable Curls',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '7',
+            notes: 'Constant tension, full range',
+          },
+        ],
+      };
+
+      // Legs Day 2
+      const legsDay2: Week = {
+        weekNumber: week,
+        focus: `Week ${week} - Day 6: Legs (Hamstring Emphasis)`,
+        exercises: [
+          {
+            name: 'Deadlifts',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '5-6' : (usePhase2 ? '5-8' : '5-7'),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Full body compound, drive through heels',
+          },
+          {
+            name: 'Hack Squats',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7',
+            notes: 'Machine guidance, full ROM',
+          },
+          {
+            name: 'Leg Curls Machine',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '10-12' : (usePhase2 ? '10-12' : '8-10'),
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7-8',
+            notes: 'Hamstring isolation, pause at top',
+          },
+          {
+            name: 'Bulgarian Split Squats',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Single leg variation, quad and glute focus',
+          },
+          {
+            name: 'Glute Bridges',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Glute activation, squeeze at top',
+          },
+          {
+            name: 'Seated Calf Raises',
+            sets: isDeload ? 2 : 3,
+            reps: '15-20',
+            weight: isDeload ? '-30%' : 'RPE 6-7',
+            tempo: '1-1-1-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '6-7',
+            notes: 'High reps for calf development',
+          },
+        ],
+      };
+
+      weeks.push(pushDay1);
+      weeks.push(pullDay1);
+      weeks.push(legsDay1);
+      weeks.push(pushDay2);
+      weeks.push(pullDay2);
+      weeks.push(legsDay2);
     }
   } else if (splitType === 'Upper/Lower') {
     // Upper/Lower split - 4 days per week
@@ -435,10 +642,10 @@ function generateDetailedProgram(
       const isDeload = week === durationWeeks;
       const usePhase2 = week > 4;
 
-      // Upper Day A
+      // Upper Day A (Chest Focus)
       const upperA: Week = {
         weekNumber: week,
-        focus: `Week ${week} Upper A (Chest Focus)`,
+        focus: `Week ${week} - Day 1: Upper A (Chest Focus)`,
         exercises: [
           {
             name: 'Barbell Bench Press',
@@ -513,10 +720,10 @@ function generateDetailedProgram(
         ],
       };
 
-      // Lower Day A
+      // Lower Day A (Quad Emphasis)
       const lowerA: Week = {
         weekNumber: week,
-        focus: `Week ${week} Lower A (Quad Emphasis)`,
+        focus: `Week ${week} - Day 2: Lower A (Quad Emphasis)`,
         exercises: [
           {
             name: 'Barbell Squats',
@@ -581,8 +788,146 @@ function generateDetailedProgram(
         ],
       };
 
+      // Upper Day B (Back Focus)
+      const upperB: Week = {
+        weekNumber: week,
+        focus: `Week ${week} - Day 3: Upper B (Back Focus)`,
+        exercises: [
+          {
+            name: 'Barbell Rows',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Chest to bar, strong back contraction',
+          },
+          {
+            name: 'Incline Barbell Press',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '8-10' : '8-10',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Upper body pressing',
+          },
+          {
+            name: 'Lat Pulldowns',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Lat width development',
+          },
+          {
+            name: 'Machine Chest Press',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Chest stability work',
+          },
+          {
+            name: 'Dumbbell Hammer Curls',
+            sets: isDeload ? 1 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 30 : 60,
+            rpe: '7',
+            notes: 'Neutral grip bicep work',
+          },
+          {
+            name: 'Overhead Tricep Extensions',
+            sets: isDeload ? 1 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '7',
+            notes: 'Tricep isolation',
+          },
+        ],
+      };
+
+      // Lower Day B (Hamstring/Glute Emphasis)
+      const lowerB: Week = {
+        weekNumber: week,
+        focus: `Week ${week} - Day 4: Lower B (Hamstring/Glute Focus)`,
+        exercises: [
+          {
+            name: 'Deadlifts',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '5-6' : (usePhase2 ? '5-8' : '5-7'),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Primary hinge movement',
+          },
+          {
+            name: 'Leg Curls',
+            sets: isDeload ? 2 : 3,
+            reps: isDeload ? '10-12' : (usePhase2 ? '10-12' : '8-10'),
+            weight: isDeload ? '-30%' : 'RPE 7-8',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 90,
+            rpe: '7-8',
+            notes: 'Hamstring isolation focus',
+          },
+          {
+            name: 'Leg Press',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Quad accessory work',
+          },
+          {
+            name: 'Hip Thrusts',
+            sets: isDeload ? 2 : 3,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Glute emphasis, squeeze at top',
+          },
+          {
+            name: 'Good Mornings',
+            sets: isDeload ? 1 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 30 : 60,
+            rpe: '7',
+            notes: 'Posterior chain accessory',
+          },
+          {
+            name: 'Seated Calf Raises',
+            sets: isDeload ? 1 : 2,
+            reps: '15-20',
+            weight: isDeload ? '-30%' : 'RPE 6-7',
+            tempo: '1-1-1-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '6-7',
+            notes: 'Calf development',
+          },
+        ],
+      };
+
       weeks.push(upperA);
       weeks.push(lowerA);
+      weeks.push(upperB);
+      weeks.push(lowerB);
     }
   } else {
     // Full Body split - 3 days per week
@@ -593,7 +938,7 @@ function generateDetailedProgram(
       // Full Body A
       const fullBodyA: Week = {
         weekNumber: week,
-        focus: `Week ${week} Full Body A`,
+        focus: `Week ${week} - Day 1: Full Body A`,
         exercises: [
           {
             name: 'Barbell Squats',
@@ -661,7 +1006,7 @@ function generateDetailedProgram(
       // Full Body B
       const fullBodyB: Week = {
         weekNumber: week,
-        focus: `Week ${week} Full Body B`,
+        focus: `Week ${week} - Day 2: Full Body B`,
         exercises: [
           {
             name: 'Deadlifts',
@@ -726,8 +1071,77 @@ function generateDetailedProgram(
         ],
       };
 
+      // Full Body C
+      const fullBodyC: Week = {
+        weekNumber: week,
+        focus: `Week ${week} - Day 3: Full Body C`,
+        exercises: [
+          {
+            name: 'Front Squats',
+            sets: isDeload ? 2 : (usePhase2 ? setsPhase2 : setsPhase1),
+            reps: isDeload ? '8-10' : (usePhase2 ? repsPhase2 : repsPhase1),
+            weight: isDeload ? '-40%' : 'RPE 7-8',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 60 : 120,
+            rpe: '7-8',
+            notes: 'Quad emphasis variation',
+          },
+          {
+            name: 'Romanian Deadlifts',
+            sets: isDeload ? 2 : 3,
+            reps: '8-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '3-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Hip hinge movement',
+          },
+          {
+            name: 'Machine Chest Press',
+            sets: isDeload ? 2 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 60 : 90,
+            rpe: '7',
+            notes: 'Chest variation',
+          },
+          {
+            name: 'Seated Cable Rows',
+            sets: isDeload ? 1 : 3,
+            reps: '10-12',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-0-2-0',
+            restSeconds: isDeload ? 45 : 75,
+            rpe: '7',
+            notes: 'Back width and thickness',
+          },
+          {
+            name: 'Dumbbell Lateral Raises',
+            sets: isDeload ? 1 : 2,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 45 : 60,
+            rpe: '7',
+            notes: 'Shoulder accessory',
+          },
+          {
+            name: 'Leg Curls',
+            sets: isDeload ? 1 : 2,
+            reps: '12-15',
+            weight: isDeload ? '-30%' : 'RPE 7',
+            tempo: '2-1-2-0',
+            restSeconds: isDeload ? 30 : 45,
+            rpe: '7',
+            notes: 'Hamstring isolation',
+          },
+        ],
+      };
+
       weeks.push(fullBodyA);
       weeks.push(fullBodyB);
+      weeks.push(fullBodyC);
     }
   }
 
@@ -924,11 +1338,11 @@ export function register(app: App, fastify: FastifyInstance) {
         );
 
         // Create workout sessions from program data
-        let sessionCounter = 0;
         for (const week of programData.weeks) {
-          // For demonstration, create one session per week with all exercises
-          const sessionName = `Week ${week.weekNumber}: ${week.focus}`;
-          sessionCounter++;
+          // Extract day number from focus string (e.g., "Week 1 - Day 3: Legs" -> 3)
+          const dayMatch = week.focus.match(/Day (\d+)/);
+          const dayNumber = dayMatch ? parseInt(dayMatch[1]) : 1;
+          const sessionName = week.focus;
 
           await app.db
             .insert(schema.workoutSessions)
@@ -936,7 +1350,7 @@ export function register(app: App, fastify: FastifyInstance) {
               programId: program.id,
               clientId: client.id,
               weekNumber: week.weekNumber,
-              dayNumber: sessionCounter,
+              dayNumber: dayNumber,
               sessionName,
               exercises: week.exercises as unknown as Record<string, any>,
               completed: false,
@@ -944,7 +1358,7 @@ export function register(app: App, fastify: FastifyInstance) {
         }
 
         app.logger.info(
-          { programId: program.id, sessionCount: sessionCounter },
+          { programId: program.id, sessionCount: programData.weeks.length },
           'Workout sessions created'
         );
 

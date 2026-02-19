@@ -166,11 +166,11 @@ export function register(app: App, fastify: FastifyInstance) {
         reply.status(201);
         return {
           ...client,
-          weight: client.weight ? parseFloat(client.weight) : null,
-          bodyFatPercentage: client.bodyFatPercentage ? parseFloat(client.bodyFatPercentage) : null,
-          squat1rm: client.squat1rm ? parseFloat(client.squat1rm) : null,
-          bench1rm: client.bench1rm ? parseFloat(client.bench1rm) : null,
-          deadlift1rm: client.deadlift1rm ? parseFloat(client.deadlift1rm) : null,
+          weight: client.weight !== null ? parseFloat(client.weight) : null,
+          bodyFatPercentage: client.bodyFatPercentage !== null ? parseFloat(client.bodyFatPercentage) : null,
+          squat1rm: client.squat1rm !== null ? parseFloat(client.squat1rm) : null,
+          bench1rm: client.bench1rm !== null ? parseFloat(client.bench1rm) : null,
+          deadlift1rm: client.deadlift1rm !== null ? parseFloat(client.deadlift1rm) : null,
         };
       } catch (error) {
         app.logger.error(
@@ -299,11 +299,11 @@ export function register(app: App, fastify: FastifyInstance) {
         );
         return {
           ...client,
-          weight: client.weight ? parseFloat(client.weight) : null,
-          bodyFatPercentage: client.bodyFatPercentage ? parseFloat(client.bodyFatPercentage) : null,
-          squat1rm: client.squat1rm ? parseFloat(client.squat1rm) : null,
-          bench1rm: client.bench1rm ? parseFloat(client.bench1rm) : null,
-          deadlift1rm: client.deadlift1rm ? parseFloat(client.deadlift1rm) : null,
+          weight: client.weight !== null ? parseFloat(client.weight) : null,
+          bodyFatPercentage: client.bodyFatPercentage !== null ? parseFloat(client.bodyFatPercentage) : null,
+          squat1rm: client.squat1rm !== null ? parseFloat(client.squat1rm) : null,
+          bench1rm: client.bench1rm !== null ? parseFloat(client.bench1rm) : null,
+          deadlift1rm: client.deadlift1rm !== null ? parseFloat(client.deadlift1rm) : null,
         };
       } catch (error) {
         app.logger.error(
@@ -415,13 +415,13 @@ export function register(app: App, fastify: FastifyInstance) {
         if (request.body.sessionDuration !== undefined)
           updateData.sessionDuration = request.body.sessionDuration;
         if (request.body.bodyFatPercentage !== undefined)
-          updateData.bodyFatPercentage = request.body.bodyFatPercentage?.toString();
+          updateData.bodyFatPercentage = request.body.bodyFatPercentage === null ? null : String(request.body.bodyFatPercentage);
         if (request.body.squat1rm !== undefined)
-          updateData.squat1rm = request.body.squat1rm?.toString();
+          updateData.squat1rm = request.body.squat1rm === null ? null : String(request.body.squat1rm);
         if (request.body.bench1rm !== undefined)
-          updateData.bench1rm = request.body.bench1rm?.toString();
+          updateData.bench1rm = request.body.bench1rm === null ? null : String(request.body.bench1rm);
         if (request.body.deadlift1rm !== undefined)
-          updateData.deadlift1rm = request.body.deadlift1rm?.toString();
+          updateData.deadlift1rm = request.body.deadlift1rm === null ? null : String(request.body.deadlift1rm);
 
         updateData.updatedAt = new Date();
 
@@ -445,11 +445,11 @@ export function register(app: App, fastify: FastifyInstance) {
         );
         return {
           ...updated,
-          weight: updated.weight ? parseFloat(updated.weight) : null,
-          bodyFatPercentage: updated.bodyFatPercentage ? parseFloat(updated.bodyFatPercentage) : null,
-          squat1rm: updated.squat1rm ? parseFloat(updated.squat1rm) : null,
-          bench1rm: updated.bench1rm ? parseFloat(updated.bench1rm) : null,
-          deadlift1rm: updated.deadlift1rm ? parseFloat(updated.deadlift1rm) : null,
+          weight: updated.weight !== null ? parseFloat(updated.weight) : null,
+          bodyFatPercentage: updated.bodyFatPercentage !== null ? parseFloat(updated.bodyFatPercentage) : null,
+          squat1rm: updated.squat1rm !== null ? parseFloat(updated.squat1rm) : null,
+          bench1rm: updated.bench1rm !== null ? parseFloat(updated.bench1rm) : null,
+          deadlift1rm: updated.deadlift1rm !== null ? parseFloat(updated.deadlift1rm) : null,
         };
       } catch (error) {
         app.logger.error(

@@ -37,6 +37,8 @@ describe("API Integration Tests", () => {
       expect(data.age).toBe(30);
       expect(data.experience).toBe("intermediate");
       expect(data.trainingFrequency).toBe(4);
+      expect(data.createdAt).toBeDefined();
+      expect(data.updatedAt).toBeDefined();
       clientId = data.id;
     });
 
@@ -81,6 +83,7 @@ describe("API Integration Tests", () => {
       expect(data[0].name).toBeDefined();
       expect(data[0].age).toBeDefined();
       expect(data[0].experience).toBeDefined();
+      expect(data[0].createdAt).toBeDefined();
     });
 
     test("Get client by ID", async () => {
@@ -93,6 +96,8 @@ describe("API Integration Tests", () => {
       expect(data.weight).toBeDefined();
       expect(data.trainingFrequency).toBe(4);
       expect(data.sessionDuration).toBe(60);
+      expect(data.createdAt).toBeDefined();
+      expect(data.updatedAt).toBeDefined();
     });
 
     test("Update client profile", async () => {
@@ -134,11 +139,33 @@ describe("API Integration Tests", () => {
       expect(data.deadlift1rm).toBeDefined();
     });
 
+    test("Update client with null optional fields", async () => {
+      const res = await api(`/api/clients/${clientId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          injuries: null,
+          preferredExercises: null,
+          bodyFatPercentage: null,
+        }),
+      });
+      await expectStatus(res, 200);
+      const data = await res.json();
+      expect(data.injuries).toBeNull();
+      expect(data.preferredExercises).toBeNull();
+      expect(data.bodyFatPercentage).toBeNull();
+    });
+
     test("Get non-existent client (404)", async () => {
       const res = await api("/api/clients/00000000-0000-0000-0000-000000000000");
       await expectStatus(res, 404);
       const data = await res.json();
       expect(data.error).toBeDefined();
+    });
+
+    test("Get client with invalid UUID format (400)", async () => {
+      const res = await api("/api/clients/invalid-uuid");
+      await expectStatus(res, 400);
     });
 
     test("Create client with missing required field 'name' (400)", async () => {
@@ -147,6 +174,25 @@ describe("API Integration Tests", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           age: 25,
+          gender: "Male",
+          height: 180,
+          weight: 85,
+          experience: "beginner",
+          goals: "Get fit",
+          trainingFrequency: 3,
+          equipment: "Gym",
+          sessionDuration: 60,
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
+    test("Create client with missing required field 'age' (400)", async () => {
+      const res = await api("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Test Client",
           gender: "Male",
           height: 180,
           weight: 85,
@@ -179,6 +225,44 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 400);
     });
 
+    test("Create client with missing required field 'trainingFrequency' (400)", async () => {
+      const res = await api("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Test Client",
+          age: 25,
+          gender: "Male",
+          height: 180,
+          weight: 85,
+          experience: "beginner",
+          goals: "Get fit",
+          equipment: "Gym",
+          sessionDuration: 60,
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
+    test("Create client with missing required field 'sessionDuration' (400)", async () => {
+      const res = await api("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Test Client",
+          age: 25,
+          gender: "Male",
+          height: 180,
+          weight: 85,
+          experience: "beginner",
+          goals: "Get fit",
+          trainingFrequency: 3,
+          equipment: "Gym",
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
     test("Create client with invalid experience value (400)", async () => {
       const res = await api("/api/clients", {
         method: "POST",
@@ -197,6 +281,18 @@ describe("API Integration Tests", () => {
         }),
       });
       await expectStatus(res, 400);
+    });
+
+    test("Update non-existent client (404)", async () => {
+      const res = await api("/api/clients/00000000-0000-0000-0000-000000000000", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Updated Name",
+          age: 40,
+        }),
+      });
+      await expectStatus(res, 404);
     });
   });
 
@@ -236,6 +332,17 @@ describe("API Integration Tests", () => {
       expect(data.error).toBeDefined();
     });
 
+    test("Generate program with invalid client_id format (400)", async () => {
+      const res = await api("/api/programs/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: "invalid-uuid",
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
     test("Generate program with missing client_id (400)", async () => {
       const res = await api("/api/programs/generate", {
         method: "POST",
@@ -255,6 +362,7 @@ describe("API Integration Tests", () => {
       expect(data[0].program_name).toBeDefined();
       expect(data[0].duration_weeks).toBeDefined();
       expect(data[0].split_type).toBeDefined();
+      expect(data[0].created_at).toBeDefined();
     });
 
     test("Get programs for non-existent client returns empty array", async () => {
@@ -262,6 +370,11 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 200);
       const data = await res.json();
       expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("Get programs with invalid client_id format (400)", async () => {
+      const res = await api("/api/programs/client/invalid-uuid");
+      await expectStatus(res, 400);
     });
 
     test("Get full program with sessions", async () => {
@@ -275,6 +388,7 @@ describe("API Integration Tests", () => {
       expect(data.sessions).toBeDefined();
       expect(Array.isArray(data.sessions)).toBe(true);
       expect(data.program_data).toBeDefined();
+      expect(data.created_at).toBeDefined();
     });
 
     test("Get non-existent program (404)", async () => {
@@ -282,6 +396,11 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 404);
       const data = await res.json();
       expect(data.error).toBeDefined();
+    });
+
+    test("Get program with invalid UUID format (400)", async () => {
+      const res = await api("/api/programs/invalid-uuid");
+      await expectStatus(res, 400);
     });
   });
 
@@ -304,6 +423,7 @@ describe("API Integration Tests", () => {
       expect(data[0].week_number).toBeDefined();
       expect(data[0].day_number).toBeDefined();
       expect(data[0].completed).toBeDefined();
+      expect(data[0].created_at).toBeDefined();
       sessionId = data[0].id;
     });
 
@@ -312,6 +432,11 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 200);
       const data = await res.json();
       expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("Get sessions with invalid program_id format (400)", async () => {
+      const res = await api("/api/sessions/program/invalid-uuid");
+      await expectStatus(res, 400);
     });
 
     test("Get session details", async () => {
@@ -326,6 +451,7 @@ describe("API Integration Tests", () => {
       expect(data.week_number).toBeDefined();
       expect(data.day_number).toBeDefined();
       expect(data.session_name).toBeDefined();
+      expect(data.created_at).toBeDefined();
     });
 
     test("Get non-existent session (404)", async () => {
@@ -333,6 +459,11 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 404);
       const data = await res.json();
       expect(data.error).toBeDefined();
+    });
+
+    test("Get session with invalid UUID format (400)", async () => {
+      const res = await api("/api/sessions/invalid-uuid");
+      await expectStatus(res, 400);
     });
 
     test("Log exercise to session", async () => {
@@ -378,6 +509,38 @@ describe("API Integration Tests", () => {
       expect(data.notes).toBeNull();
     });
 
+    test("Log exercise with valid RPE (minimum)", async () => {
+      const res = await api(`/api/sessions/${sessionId}/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercise_name: "Deadlift",
+          weight_used: 180,
+          reps_completed: 3,
+          rpe: 1,
+        }),
+      });
+      await expectStatus(res, 201);
+      const data = await res.json();
+      expect(data.rpe).toBe(1);
+    });
+
+    test("Log exercise with valid RPE (maximum)", async () => {
+      const res = await api(`/api/sessions/${sessionId}/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercise_name: "Bench Press",
+          weight_used: 120,
+          reps_completed: 4,
+          rpe: 10,
+        }),
+      });
+      await expectStatus(res, 201);
+      const data = await res.json();
+      expect(data.rpe).toBe(10);
+    });
+
     test("Log exercise with invalid RPE (below minimum)", async () => {
       const res = await api(`/api/sessions/${sessionId}/log`, {
         method: "POST",
@@ -406,13 +569,37 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 400);
     });
 
-    test("Log exercise with missing required fields (400)", async () => {
+    test("Log exercise with missing exercise_name (400)", async () => {
+      const res = await api(`/api/sessions/${sessionId}/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weight_used: 140,
+          reps_completed: 5,
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
+    test("Log exercise with missing weight_used (400)", async () => {
       const res = await api(`/api/sessions/${sessionId}/log`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           exercise_name: "Squat",
-          // missing weight_used and reps_completed
+          reps_completed: 5,
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
+    test("Log exercise with missing reps_completed (400)", async () => {
+      const res = await api(`/api/sessions/${sessionId}/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercise_name: "Squat",
+          weight_used: 140,
         }),
       });
       await expectStatus(res, 400);
@@ -431,6 +618,19 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 404);
       const data = await res.json();
       expect(data.error).toBeDefined();
+    });
+
+    test("Log exercise with invalid session_id format (400)", async () => {
+      const res = await api(`/api/sessions/invalid-uuid/log`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercise_name: "Squat",
+          weight_used: 140,
+          reps_completed: 5,
+        }),
+      });
+      await expectStatus(res, 400);
     });
 
     test("Complete session with exercise data", async () => {
@@ -461,6 +661,32 @@ describe("API Integration Tests", () => {
       expect(data.completed).toBe(true);
       expect(data.completed_at).toBeDefined();
       expect(data.exercises).toBeDefined();
+    });
+
+    test("Complete session with single exercise", async () => {
+      // Get another session first
+      const sessionRes = await api(`/api/sessions/program/${programId}`);
+      const sessions = await sessionRes.json();
+      const nextSession = sessions.find((s: any) => s.id !== sessionId);
+
+      if (nextSession) {
+        const res = await api(`/api/sessions/${nextSession.id}/complete`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            exercises: [
+              {
+                exercise_name: "Squat",
+                weight_used: 150,
+                reps_completed: 5,
+              },
+            ],
+          }),
+        });
+        await expectStatus(res, 200);
+        const data = await res.json();
+        expect(data.completed).toBe(true);
+      }
     });
 
     test("Complete session with missing exercises array (400)", async () => {
@@ -501,6 +727,40 @@ describe("API Integration Tests", () => {
       const data = await res.json();
       expect(data.error).toBeDefined();
     });
+
+    test("Complete session with invalid session_id format (400)", async () => {
+      const res = await api(`/api/sessions/invalid-uuid/complete`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercises: [
+            {
+              exercise_name: "Squat",
+              weight_used: 140,
+              reps_completed: 5,
+            },
+          ],
+        }),
+      });
+      await expectStatus(res, 400);
+    });
+
+    test("Complete session with exercise missing required field (400)", async () => {
+      const res = await api(`/api/sessions/${sessionId}/complete`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercises: [
+            {
+              exercise_name: "Squat",
+              weight_used: 140,
+              // missing reps_completed
+            },
+          ],
+        }),
+      });
+      await expectStatus(res, 400);
+    });
   });
 
   // ============================================================================
@@ -533,9 +793,30 @@ describe("API Integration Tests", () => {
       expect(Array.isArray(data)).toBe(true);
     });
 
-    test("Get alternatives with missing required query parameters (400)", async () => {
+    test("Get alternatives with missing exercise_name (400)", async () => {
       const res = await api(
-        `/api/exercises/swap?exercise_name=Squat&client_id=${clientId}`
+        `/api/exercises/swap?muscle_group=Quads&equipment=Barbell&client_id=${clientId}`
+      );
+      await expectStatus(res, 400);
+    });
+
+    test("Get alternatives with missing muscle_group (400)", async () => {
+      const res = await api(
+        `/api/exercises/swap?exercise_name=Squat&equipment=Barbell&client_id=${clientId}`
+      );
+      await expectStatus(res, 400);
+    });
+
+    test("Get alternatives with missing equipment (400)", async () => {
+      const res = await api(
+        `/api/exercises/swap?exercise_name=Squat&muscle_group=Quads&client_id=${clientId}`
+      );
+      await expectStatus(res, 400);
+    });
+
+    test("Get alternatives with missing client_id (400)", async () => {
+      const res = await api(
+        `/api/exercises/swap?exercise_name=Squat&muscle_group=Quads&equipment=Barbell`
       );
       await expectStatus(res, 400);
     });
@@ -572,6 +853,17 @@ describe("API Integration Tests", () => {
       expect(data.strength_progress).toBeDefined();
       expect(data.muscle_group_volume).toBeDefined();
       expect(data.last_workout_date).toBeDefined();
+    });
+
+    test("Get client analytics has correct structure", async () => {
+      const res = await api(`/api/analytics/client/${clientId}`);
+      await expectStatus(res, 200);
+      const data = await res.json();
+      expect(typeof data.compliance_rate).toBe("number");
+      expect(typeof data.total_sessions).toBe("number");
+      expect(typeof data.completed_sessions).toBe("number");
+      expect(typeof data.strength_progress).toBe("object");
+      expect(typeof data.muscle_group_volume).toBe("object");
     });
 
     test("Get client analytics has strength progress structure", async () => {
@@ -627,6 +919,13 @@ describe("API Integration Tests", () => {
       expect(data.error).toBeDefined();
     });
 
+    test("Delete program with invalid UUID format (400)", async () => {
+      const res = await api(`/api/programs/invalid-uuid`, {
+        method: "DELETE",
+      });
+      await expectStatus(res, 400);
+    });
+
     test("Delete client", async () => {
       const res = await api(`/api/clients/${clientId}`, {
         method: "DELETE",
@@ -648,6 +947,13 @@ describe("API Integration Tests", () => {
       await expectStatus(res, 404);
       const data = await res.json();
       expect(data.error).toBeDefined();
+    });
+
+    test("Delete client with invalid UUID format (400)", async () => {
+      const res = await api(`/api/clients/invalid-uuid`, {
+        method: "DELETE",
+      });
+      await expectStatus(res, 400);
     });
   });
 });
