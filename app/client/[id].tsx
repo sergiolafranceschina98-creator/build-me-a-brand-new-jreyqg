@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -79,12 +79,7 @@ export default function ClientDetailScreen() {
     setErrorModal({ visible: true, message });
   };
 
-  useEffect(() => {
-    console.log('👤 ClientDetailScreen: useEffect triggered, loading data...');
-    loadClientData();
-  }, [id]);
-
-  const loadClientData = async () => {
+  const loadClientData = useCallback(async () => {
     console.log('📥 ClientDetailScreen: Loading client data for ID:', id);
     try {
       setLoading(true);
@@ -129,7 +124,12 @@ export default function ClientDetailScreen() {
       setLoading(false);
       console.log('🏁 ClientDetailScreen: Load process completed');
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    console.log('👤 ClientDetailScreen: useEffect triggered, loading data...');
+    loadClientData();
+  }, [loadClientData]);
 
   const handleGenerateProgram = async () => {
     console.log('🚀 ClientDetailScreen: Generate Program button pressed');

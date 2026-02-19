@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -75,12 +75,7 @@ export default function ProgramDetailScreen() {
     setErrorModal({ visible: true, message });
   };
 
-  useEffect(() => {
-    console.log('ProgramDetailScreen mounted for program:', id);
-    loadProgramData();
-  }, [id]);
-
-  const loadProgramData = async () => {
+  const loadProgramData = useCallback(async () => {
     try {
       console.log('[API] GET /api/programs/', id);
       setLoading(true);
@@ -91,7 +86,9 @@ export default function ProgramDetailScreen() {
         try {
           const errBody = await response.json();
           errMsg = errBody.error || errMsg;
-        } catch { /* ignore */ }
+        } catch {
+          console.log('Could not parse error response');
+        }
         throw new Error(errMsg);
       }
 
@@ -104,7 +101,12 @@ export default function ProgramDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    console.log('ProgramDetailScreen mounted for program:', id);
+    loadProgramData();
+  }, [loadProgramData]);
 
   const handleDeleteProgram = async () => {
     setDeleteModal(false);
@@ -118,7 +120,9 @@ export default function ProgramDetailScreen() {
         try {
           const errBody = await response.json();
           errMsg = errBody.error || errMsg;
-        } catch { /* ignore */ }
+        } catch {
+          console.log('Could not parse error response');
+        }
         throw new Error(errMsg);
       }
       console.log('Program deleted successfully');
