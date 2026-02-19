@@ -25,6 +25,8 @@ interface SessionExercise {
   sets: number;
   reps: string;
   rest: string;
+  rpe?: string;
+  tempo?: string;
   notes?: string;
 }
 
@@ -396,7 +398,9 @@ export default function ProgramDetailScreen() {
                               const exName = ex.name || ex.exercise_name || `Exercise ${eIdx + 1}`;
                               const setsText = ex.sets ? `${ex.sets} sets` : '';
                               const repsText = ex.reps ? `${ex.reps} reps` : '';
-                              const restText = ex.rest ? `${ex.rest} rest` : '';
+                              const restText = ex.rest ? `Rest: ${ex.rest}` : '';
+                              const rpeText = ex.rpe ? `RPE ${ex.rpe}` : '';
+                              const tempoText = ex.tempo ? `Tempo: ${ex.tempo}` : '';
                               const notesText = ex.notes || '';
 
                               return (
@@ -454,6 +458,34 @@ export default function ProgramDetailScreen() {
                                         />
                                         <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
                                           {restText}
+                                        </Text>
+                                      </View>
+                                    ) : null}
+
+                                    {rpeText ? (
+                                      <View style={styles.exerciseDetailRow}>
+                                        <IconSymbol
+                                          ios_icon_name="gauge"
+                                          android_material_icon_name="speed"
+                                          size={16}
+                                          color={themeColors.warning}
+                                        />
+                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
+                                          {rpeText}
+                                        </Text>
+                                      </View>
+                                    ) : null}
+
+                                    {tempoText ? (
+                                      <View style={styles.exerciseDetailRow}>
+                                        <IconSymbol
+                                          ios_icon_name="metronome"
+                                          android_material_icon_name="av-timer"
+                                          size={16}
+                                          color={themeColors.textSecondary}
+                                        />
+                                        <Text style={[styles.exerciseDetailText, { color: themeColors.text }]}>
+                                          {tempoText}
                                         </Text>
                                       </View>
                                     ) : null}
