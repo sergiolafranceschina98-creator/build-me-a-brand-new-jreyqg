@@ -2,33 +2,42 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, spacing, typography } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@react-navigation/native';
 import React from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const theme = useTheme();
   const isDark = theme.dark;
   const themeColors = isDark ? colors.dark : colors.light;
+  const router = useRouter();
 
   const settingsItems = [
     {
       icon: 'info',
       title: 'About',
       subtitle: 'App version and information',
+      route: '/about',
     },
     {
       icon: 'help',
       title: 'Help & Support',
       subtitle: 'Get assistance and FAQs',
+      route: '/help',
     },
     {
       icon: 'privacy-tip',
       title: 'Privacy Policy',
       subtitle: 'Your data and privacy',
+      route: '/privacy',
     },
   ];
+
+  const handleItemPress = (route: string, title: string) => {
+    console.log('User tapped settings item:', title);
+    router.push(route as any);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -78,8 +87,8 @@ export default function ProfileScreen() {
           {settingsItems.map((item, index) => (
             <React.Fragment key={index}>
               <TouchableOpacity
-                key={index}
                 style={[styles.settingsItem, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+                onPress={() => handleItemPress(item.route, item.title)}
                 activeOpacity={0.7}
               >
                 <View style={[styles.iconContainer, { backgroundColor: themeColors.primary + '20' }]}>
