@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Platform,
   useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
 
 interface Client {
@@ -30,103 +31,85 @@ interface Client {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    padding: spacing.lg,
-    paddingBottom: 120,
   },
   header: {
-    marginBottom: spacing.xl,
+    paddingTop: Platform.OS === 'android' ? 48 : 60,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
-  title: {
+  headerTitle: {
     fontSize: typography.sizes.xxl,
     fontWeight: typography.weights.bold as any,
     color: colors.text,
     marginBottom: spacing.xs,
   },
-  subtitle: {
+  headerSubtitle: {
     fontSize: typography.sizes.md,
     color: colors.textSecondary,
   },
-  addButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: spacing.xl,
+  content: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
   },
-  addButtonGradient: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.lg,
-    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 12,
+    marginBottom: spacing.lg,
   },
   addButtonText: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold as any,
     color: colors.text,
-  },
-  clientsGrid: {
-    gap: spacing.md,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold as any,
+    marginLeft: spacing.sm,
   },
   clientCard: {
+    backgroundColor: colors.cardBackground,
     borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: spacing.md,
-  },
-  clientCardGradient: {
     padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   clientHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: spacing.md,
-  },
-  clientInfo: {
-    flex: 1,
+    marginBottom: spacing.sm,
   },
   clientName: {
-    fontSize: typography.sizes.xl,
+    fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold as any,
     color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  clientMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  clientMetaText: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  clientDetails: {
-    gap: spacing.sm,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  detailLabel: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
     flex: 1,
   },
-  detailValue: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold as any,
-    color: colors.text,
+  clientInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
-  emptyState: {
-    alignItems: 'center',
+  infoChip: {
+    backgroundColor: colors.cardBackgroundAlt,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+  },
+  infoText: {
+    fontSize: typography.sizes.sm,
+    color: colors.textSecondary,
+  },
+  emptyContainer: {
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: spacing.xxl * 2,
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
   emptyIcon: {
-    marginBottom: spacing.xl,
-    opacity: 0.5,
+    marginBottom: spacing.lg,
   },
   emptyTitle: {
     fontSize: typography.sizes.xl,
@@ -139,267 +122,262 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  twoColumnGrid: {
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  errorText: {
+    fontSize: typography.sizes.md,
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: colors.text,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold as any,
+  },
+  clientsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.md,
   },
-  columnCard: {
+  clientCardTablet: {
     flex: 1,
     minWidth: 300,
+    maxWidth: '48%',
   },
 });
 
 export default function HomeScreen() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const { colors: themeColors } = useTheme();
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
   const router = useRouter();
   const { width } = useWindowDimensions();
-
   const isTablet = width >= 768;
 
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log('🏠 ============================================');
-      console.log('🏠 HOME SCREEN - Screen Focused');
-      console.log('🏠 ============================================');
-      loadClients();
-    }, [])
-  );
-
-  const loadClients = async () => {
-    console.log('[API] ============================================');
-    console.log('[API] GET /api/clients - Loading clients...');
-    console.log('[API] ============================================');
-    
-    const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl;
-    console.log('[API] Backend URL:', BACKEND_URL);
-    
-    if (!BACKEND_URL) {
-      console.error('❌ [API] ERROR: Backend URL not configured!');
-      setLoading(false);
-      return;
+  const loadClients = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
     }
+    setError(null);
+
+    console.log('[API] GET /api/clients - Loading clients...');
 
     try {
-      const url = `${BACKEND_URL}/api/clients`;
+      const backendUrl = Constants.expoConfig?.extra?.backendUrl;
+      console.log('[API] Backend URL:', backendUrl);
+
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const url = `${backendUrl}/api/clients`;
       console.log('[API] Fetching from:', url);
-      
-      const response = await fetch(url);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
       console.log('[API] Response status:', response.status);
       console.log('[API] Response ok:', response.ok);
-      
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ [API] Error response:', errorText);
         throw new Error(`Failed to load clients: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('[API] ============================================');
       console.log('[API] Clients loaded successfully:', data.length);
-      console.log('[API] ============================================');
-      
-      if (data.length > 0) {
-        console.log('[API] First client:', JSON.stringify(data[0], null, 2));
-      }
-      
+
       setClients(data);
-    } catch (error) {
-      console.error('❌ ============================================');
-      console.error('❌ ERROR LOADING CLIENTS');
-      console.error('❌ ============================================');
-      console.error('❌ Error:', error);
-      console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
-      console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      setError(null);
+    } catch (err: any) {
+      console.error('[API] Error loading clients:', err);
+      
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please check your connection and try again.');
+      } else {
+        setError(err.message || 'Failed to load clients. Please try again.');
+      }
     } finally {
       setLoading(false);
-      console.log('[API] Loading complete, setting loading to false');
+      setRefreshing(false);
+      console.log('[API] Loading complete');
     }
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🏠 HOME SCREEN - Screen Focused');
+      loadClients();
+    }, [])
+  );
+
   const handleAddClient = () => {
-    console.log('👤 ============================================');
     console.log('👤 USER ACTION: Add Client Button Pressed');
-    console.log('👤 ============================================');
     console.log('👤 Navigating to: /new-client');
     router.push('/new-client');
   };
 
   const handleClientPress = (clientId: string) => {
-    console.log('👤 ============================================');
     console.log('👤 USER ACTION: Client Card Pressed');
-    console.log('👤 ============================================');
     console.log('👤 Client ID:', clientId);
     console.log('👤 Navigating to: /client/' + clientId);
     router.push(`/client/${clientId}`);
   };
 
+  const handleRetry = () => {
+    console.log('🔄 USER ACTION: Retry Button Pressed');
+    loadClients();
+  };
+
   const renderEmptyState = () => {
-    console.log('📋 Rendering empty state (no clients)');
+    const emptyIconSize = 80;
+    const emptyTitleText = 'No Clients Yet';
+    const emptySubtitleText = 'Create your first client profile to start building personalized workout programs';
+
     return (
-      <View style={styles.emptyState}>
+      <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
           <IconSymbol
-            ios_icon_name="person.3.fill"
+            ios_icon_name="person.2"
             android_material_icon_name="group"
-            size={80}
+            size={emptyIconSize}
             color={colors.textSecondary}
           />
         </View>
-        <Text style={styles.emptyTitle}>No Clients Yet</Text>
-        <Text style={styles.emptySubtitle}>
-          Create your first client profile to start building personalized workout programs
-        </Text>
+        <Text style={styles.emptyTitle}>{emptyTitleText}</Text>
+        <Text style={styles.emptySubtitle}>{emptySubtitleText}</Text>
       </View>
     );
   };
 
   const renderClient = (client: Client, index: number) => {
-    const formattedDate = new Date(client.createdAt).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const ageText = `${client.age} years`;
+    const genderText = client.gender;
+    const experienceText = client.experience;
 
     return (
       <TouchableOpacity
         key={client.id}
-        style={[styles.clientCard, isTablet && styles.columnCard]}
+        style={[styles.clientCard, isTablet && styles.clientCardTablet]}
         onPress={() => handleClientPress(client.id)}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <LinearGradient
-          colors={[colors.cardBackground, colors.cardBackgroundAlt]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.clientCardGradient}
-        >
-          <View style={styles.clientHeader}>
-            <View style={styles.clientInfo}>
-              <Text style={styles.clientName}>{client.name}</Text>
-              <View style={styles.clientMeta}>
-                <Text style={styles.clientMetaText}>{client.age} years</Text>
-                <Text style={styles.clientMetaText}>•</Text>
-                <Text style={styles.clientMetaText}>{client.gender}</Text>
-              </View>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="arrow-forward"
-              size={24}
-              color={colors.primary}
-            />
+        <View style={styles.clientHeader}>
+          <Text style={styles.clientName}>{client.name}</Text>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="arrow-forward"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </View>
+        <View style={styles.clientInfo}>
+          <View style={styles.infoChip}>
+            <Text style={styles.infoText}>{ageText}</Text>
           </View>
-
-          <View style={styles.clientDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Experience</Text>
-              <Text style={styles.detailValue}>{client.experience}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Goals</Text>
-              <Text style={styles.detailValue} numberOfLines={1}>
-                {client.goals}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Created</Text>
-              <Text style={styles.detailValue}>{formattedDate}</Text>
-            </View>
+          <View style={styles.infoChip}>
+            <Text style={styles.infoText}>{genderText}</Text>
           </View>
-        </LinearGradient>
+          <View style={styles.infoChip}>
+            <Text style={styles.infoText}>{experienceText}</Text>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   };
 
-  if (loading) {
-    console.log('⏳ Rendering loading state...');
-    return (
-      <View style={styles.container}>
-        <Stack.Screen
-          options={{
-            title: 'Clients',
-            headerShown: false,
-          }}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </View>
-    );
-  }
-
-  console.log('📋 ============================================');
-  console.log('📋 RENDERING HOME SCREEN');
-  console.log('📋 ============================================');
-  console.log('📋 Total clients:', clients.length);
-  console.log('📋 Is tablet:', isTablet);
-  console.log('📋 Screen width:', width);
+  const headerTitleText = 'AI Workout Builder';
+  const headerSubtitleText = 'Manage your clients and programs';
+  const addButtonText = 'Add New Client';
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: 'Clients',
-          headerShown: false,
-        }}
-      />
-      <ScrollView
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <LinearGradient
+        colors={[colors.background, colors.cardBackground]}
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Your Clients</Text>
-          <Text style={styles.subtitle}>
-            {clients.length === 0
-              ? 'Get started by adding your first client'
-              : `${clients.length} ${clients.length === 1 ? 'client' : 'clients'}`}
-          </Text>
+          <Text style={styles.headerTitle}>{headerTitleText}</Text>
+          <Text style={styles.headerSubtitle}>{headerSubtitleText}</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleAddClient}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={[colors.primary, colors.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.addButtonGradient}
-          >
-            <IconSymbol
-              ios_icon_name="plus.circle.fill"
-              android_material_icon_name="add"
-              size={24}
-              color={colors.text}
-            />
-            <Text style={styles.addButtonText}>Add New Client</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {clients.length === 0 ? (
-          renderEmptyState()
-        ) : isTablet ? (
-          <View style={styles.twoColumnGrid}>
-            {clients.map((client, index) => renderClient(client, index))}
+        {loading && !refreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.clientsGrid}>
-            {clients.map((client, index) => renderClient(client, index))}
-          </View>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => loadClients(true)}
+                tintColor={colors.primary}
+              />
+            }
+          >
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddClient}
+              activeOpacity={0.8}
+            >
+              <IconSymbol
+                ios_icon_name="plus"
+                android_material_icon_name="add"
+                size={24}
+                color={colors.text}
+              />
+              <Text style={styles.addButtonText}>{addButtonText}</Text>
+            </TouchableOpacity>
+
+            {clients.length === 0 ? (
+              renderEmptyState()
+            ) : isTablet ? (
+              <View style={styles.clientsGrid}>
+                {clients.map((client, index) => renderClient(client, index))}
+              </View>
+            ) : (
+              clients.map((client, index) => renderClient(client, index))
+            )}
+          </ScrollView>
         )}
-      </ScrollView>
-    </View>
+      </LinearGradient>
+    </>
   );
 }

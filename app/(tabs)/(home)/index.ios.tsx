@@ -1,4 +1,10 @@
 
+import { useTheme } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, typography } from '@/styles/commonStyles';
+import React, { useState, useEffect } from 'react';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
+import Constants from 'expo-constants';
 import {
   View,
   Text,
@@ -7,14 +13,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
-import { colors, spacing, typography } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
-import { useTheme } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
-import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import Constants from 'expo-constants';
 
 interface Client {
   id: string;
@@ -26,381 +27,352 @@ interface Client {
   createdAt: string;
 }
 
-export default function HomeScreen() {
-  const router = useRouter();
-  const theme = useTheme();
-  const isDark = theme.dark;
-  const themeColors = isDark ? colors.dark : colors.light;
-  const { width } = useWindowDimensions();
-
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Determine number of columns based on screen width (iPad optimization)
-  const isTablet = width >= 768;
-  const numColumns = width >= 1024 ? 3 : width >= 768 ? 2 : 1;
-  const cardWidth = isTablet ? (width - spacing.md * (numColumns + 1)) / numColumns : width - spacing.md * 2;
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadClients();
-    }, [])
-  );
-
-  const loadClients = async () => {
-    console.log('[API] GET /api/clients - Loading clients...');
-    setLoading(true);
-
-    try {
-      const backendUrl = Constants.expoConfig?.extra?.backendUrl;
-      
-      if (!backendUrl) {
-        console.error('[API] Backend URL not configured');
-        setClients([]);
-        setLoading(false);
-        return;
-      }
-
-      console.log('[API] Fetching from:', `${backendUrl}/api/clients`);
-      const response = await fetch(`${backendUrl}/api/clients`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-
-      console.log('[API] Response status:', response.status);
-
-      if (!response.ok) {
-        let errMsg = `Failed to fetch clients (${response.status})`;
-        try {
-          const errBody = await response.json();
-          errMsg = errBody.error || errBody.message || errMsg;
-          console.error('[API] Error response:', errBody);
-        } catch (parseError) {
-          console.error('[API] Could not parse error response');
-        }
-        throw new Error(errMsg);
-      }
-
-      const data: Client[] = await response.json();
-      console.log('[API] Clients loaded successfully:', data.length);
-      setClients(data);
-    } catch (error: any) {
-      console.error('[API] Error loading clients:', error?.message || 'Unknown error');
-      console.error('[API] Full error:', error);
-      setClients([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddClient = () => {
-    console.log('User tapped Add Client button');
-    router.push('/new-client');
-  };
-
-  const handleClientPress = (clientId: string) => {
-    console.log('User tapped client:', clientId);
-    router.push(`/client/${clientId}`);
-  };
-
-  const renderEmptyState = () => {
-    return (
-      <View style={styles.emptyContainer}>
-        <LinearGradient
-          colors={[themeColors.primary + '20', themeColors.secondary + '10']}
-          style={[styles.emptyGradient, isTablet && { maxWidth: 600 }]}
-        >
-          <View style={styles.emptyIconContainer}>
-            <IconSymbol
-              ios_icon_name="person.2.fill"
-              android_material_icon_name="group"
-              size={isTablet ? 80 : 64}
-              color={themeColors.primary}
-            />
-          </View>
-          <Text style={[styles.emptyTitle, { color: themeColors.text }, isTablet && { fontSize: 32 }]}>
-            No Clients Yet
-          </Text>
-          <Text style={[styles.emptySubtitle, { color: themeColors.textSecondary }, isTablet && { fontSize: 18 }]}>
-            Start building personalized workout programs by adding your first client
-          </Text>
-        </LinearGradient>
-      </View>
-    );
-  };
-
-  const renderClient = (client: Client, index: number) => {
-    return (
-      <TouchableOpacity
-        key={index}
-        onPress={() => handleClientPress(client.id)}
-        activeOpacity={0.7}
-        style={[isTablet && { width: cardWidth }]}
-      >
-        <LinearGradient
-          colors={[themeColors.card, themeColors.card]}
-          style={[styles.clientCard, { borderColor: themeColors.border }]}
-        >
-          <View style={styles.clientHeader}>
-            <View style={styles.clientAvatar}>
-              <LinearGradient
-                colors={[themeColors.primary, themeColors.secondary]}
-                style={[styles.avatarGradient, isTablet && { width: 64, height: 64, borderRadius: 32 }]}
-              >
-                <Text style={[styles.avatarText, isTablet && { fontSize: 28 }]}>
-                  {client.name.charAt(0).toUpperCase()}
-                </Text>
-              </LinearGradient>
-            </View>
-            <View style={styles.clientInfo}>
-              <Text style={[styles.clientName, { color: themeColors.text }, isTablet && { fontSize: 20 }]}>
-                {client.name}
-              </Text>
-              <View style={styles.clientMeta}>
-                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
-                  {client.age} years
-                </Text>
-                <View style={[styles.dot, { backgroundColor: themeColors.textSecondary }]} />
-                <Text style={[styles.clientMetaText, { color: themeColors.textSecondary }, isTablet && { fontSize: 15 }]}>
-                  {client.experience}
-                </Text>
-              </View>
-            </View>
-            <IconSymbol
-              ios_icon_name="chevron.right"
-              android_material_icon_name="chevron-right"
-              size={isTablet ? 24 : 20}
-              color={themeColors.textSecondary}
-            />
-          </View>
-          <View style={[styles.clientGoals, { backgroundColor: themeColors.primary + '15' }]}>
-            <Text style={[styles.clientGoalsText, { color: themeColors.primary }, isTablet && { fontSize: 15 }]}>
-              {client.goals}
-            </Text>
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  };
-
-  return (
-    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: 'Clients',
-          headerLargeTitle: true,
-          headerStyle: {
-            backgroundColor: themeColors.background,
-          },
-          headerTintColor: themeColors.text,
-          headerRight: () => (
-            <TouchableOpacity onPress={handleAddClient} style={styles.addButton}>
-              <LinearGradient
-                colors={[themeColors.primary, themeColors.secondary]}
-                style={[styles.addButtonGradient, isTablet && { width: 44, height: 44, borderRadius: 22 }]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <IconSymbol
-                  ios_icon_name="plus"
-                  android_material_icon_name="add"
-                  size={isTablet ? 24 : 20}
-                  color="#FFFFFF"
-                />
-              </LinearGradient>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
-        </View>
-      ) : (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            isTablet && { paddingHorizontal: spacing.xl }
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {clients.length === 0 ? (
-            renderEmptyState()
-          ) : (
-            <View style={[
-              styles.clientsList,
-              isTablet && {
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                justifyContent: 'flex-start',
-                gap: spacing.md,
-              }
-            ]}>
-              {clients.map((client, index) => renderClient(client, index))}
-            </View>
-          )}
-        </ScrollView>
-      )}
-
-      {clients.length > 0 && (
-        <TouchableOpacity
-          style={[styles.floatingButton, isTablet && { width: 72, height: 72, bottom: 120, right: spacing.xl }]}
-          onPress={handleAddClient}
-          activeOpacity={0.9}
-        >
-          <LinearGradient
-            colors={[themeColors.primary, themeColors.secondary]}
-            style={[styles.floatingButtonGradient, isTablet && { width: 72, height: 72, borderRadius: 36 }]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <IconSymbol
-              ios_icon_name="plus"
-              android_material_icon_name="add"
-              size={isTablet ? 32 : 28}
-              color="#FFFFFF"
-            />
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
-  scrollContent: {
-    padding: spacing.md,
-    paddingBottom: 100,
+  headerTitle: {
+    fontSize: typography.sizes.xxl,
+    fontWeight: typography.weights.bold as any,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
-  loadingContainer: {
+  headerSubtitle: {
+    fontSize: typography.sizes.md,
+    color: colors.textSecondary,
+  },
+  content: {
     flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  addButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 12,
+    marginBottom: spacing.lg,
+  },
+  addButtonText: {
+    color: colors.text,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold as any,
+    marginLeft: spacing.sm,
+  },
+  clientCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  clientHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.sm,
+  },
+  clientName: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.bold as any,
+    color: colors.text,
+    flex: 1,
+  },
+  clientInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  infoChip: {
+    backgroundColor: colors.cardBackgroundAlt,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+  },
+  infoText: {
+    fontSize: typography.sizes.sm,
+    color: colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    marginTop: 60,
   },
-  emptyGradient: {
-    width: '100%',
-    padding: spacing.xl,
-    borderRadius: 24,
-    alignItems: 'center',
-  },
-  emptyIconContainer: {
+  emptyIcon: {
     marginBottom: spacing.lg,
   },
   emptyTitle: {
-    ...typography.h2,
-    textAlign: 'center',
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold as any,
+    color: colors.text,
     marginBottom: spacing.sm,
+    textAlign: 'center',
   },
   emptySubtitle: {
-    ...typography.body,
+    fontSize: typography.sizes.md,
+    color: colors.textSecondary,
     textAlign: 'center',
-    opacity: 0.8,
+    marginBottom: spacing.xl,
   },
-  clientsList: {
-    gap: spacing.md,
-  },
-  clientCard: {
-    borderRadius: 20,
-    padding: spacing.lg,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  clientHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  clientAvatar: {
-    marginRight: spacing.md,
-  },
-  avatarGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  clientInfo: {
+  errorContainer: {
     flex: 1,
-  },
-  clientName: {
-    ...typography.h3,
-    marginBottom: 4,
-  },
-  clientMeta: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
   },
-  clientMetaText: {
-    ...typography.bodySmall,
+  errorText: {
+    fontSize: typography.sizes.md,
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
   },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-  },
-  clientGoals: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
     borderRadius: 12,
   },
-  clientGoalsText: {
-    ...typography.bodySmall,
-    fontWeight: '600',
+  retryButtonText: {
+    color: colors.text,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold as any,
   },
-  addButton: {
-    marginRight: spacing.sm,
+  clientsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
   },
-  addButtonGradient: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 16,
-  },
-  floatingButtonGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+  clientCardTablet: {
+    flex: 1,
+    minWidth: 300,
+    maxWidth: '48%',
   },
 });
+
+export default function HomeScreen() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+
+  const loadClients = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    setError(null);
+
+    console.log('[API] GET /api/clients - Loading clients...');
+
+    try {
+      const backendUrl = Constants.expoConfig?.extra?.backendUrl;
+      console.log('[API] Backend URL:', backendUrl);
+
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const url = `${backendUrl}/api/clients`;
+      console.log('[API] Fetching from:', url);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      console.log('[API] Response status:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`Failed to load clients: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('[API] Clients loaded successfully:', data.length);
+
+      setClients(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('[API] Error loading clients:', err);
+      
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please check your connection and try again.');
+      } else {
+        setError(err.message || 'Failed to load clients. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🏠 HOME SCREEN - Screen Focused');
+      loadClients();
+    }, [])
+  );
+
+  const handleAddClient = () => {
+    console.log('👤 USER ACTION: Add Client Button Pressed');
+    router.push('/new-client');
+  };
+
+  const handleClientPress = (clientId: string) => {
+    console.log('👤 USER ACTION: Client Card Pressed');
+    console.log('👤 Client ID:', clientId);
+    router.push(`/client/${clientId}`);
+  };
+
+  const handleRetry = () => {
+    console.log('🔄 USER ACTION: Retry Button Pressed');
+    loadClients();
+  };
+
+  const renderEmptyState = () => {
+    const emptyIconSize = 80;
+    const emptyTitleText = 'No Clients Yet';
+    const emptySubtitleText = 'Create your first client profile to start building personalized workout programs';
+
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIcon}>
+          <IconSymbol
+            ios_icon_name="person.2"
+            android_material_icon_name="group"
+            size={emptyIconSize}
+            color={colors.textSecondary}
+          />
+        </View>
+        <Text style={styles.emptyTitle}>{emptyTitleText}</Text>
+        <Text style={styles.emptySubtitle}>{emptySubtitleText}</Text>
+      </View>
+    );
+  };
+
+  const renderClient = (client: Client, index: number) => {
+    const ageText = `${client.age} years`;
+    const genderText = client.gender;
+    const experienceText = client.experience;
+
+    return (
+      <TouchableOpacity
+        key={client.id}
+        style={[styles.clientCard, isTablet && styles.clientCardTablet]}
+        onPress={() => handleClientPress(client.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.clientHeader}>
+          <Text style={styles.clientName}>{client.name}</Text>
+          <IconSymbol
+            ios_icon_name="chevron.right"
+            android_material_icon_name="arrow-forward"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </View>
+        <View style={styles.clientInfo}>
+          <View style={styles.infoChip}>
+            <Text style={styles.infoText}>{ageText}</Text>
+          </View>
+          <View style={styles.infoChip}>
+            <Text style={styles.infoText}>{genderText}</Text>
+          </View>
+          <View style={styles.infoChip}>
+            <Text style={styles.infoText}>{experienceText}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const headerTitleText = 'AI Workout Builder';
+  const headerSubtitleText = 'Manage your clients and programs';
+  const addButtonText = 'Add New Client';
+
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <LinearGradient
+        colors={[colors.background, colors.cardBackground]}
+        style={styles.container}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>{headerTitleText}</Text>
+          <Text style={styles.headerSubtitle}>{headerSubtitleText}</Text>
+        </View>
+
+        {loading && !refreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => loadClients(true)}
+                tintColor={colors.primary}
+              />
+            }
+          >
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddClient}
+              activeOpacity={0.8}
+            >
+              <IconSymbol
+                ios_icon_name="plus"
+                android_material_icon_name="add"
+                size={24}
+                color={colors.text}
+              />
+              <Text style={styles.addButtonText}>{addButtonText}</Text>
+            </TouchableOpacity>
+
+            {clients.length === 0 ? (
+              renderEmptyState()
+            ) : isTablet ? (
+              <View style={styles.clientsGrid}>
+                {clients.map((client, index) => renderClient(client, index))}
+              </View>
+            ) : (
+              clients.map((client, index) => renderClient(client, index))
+            )}
+          </ScrollView>
+        )}
+      </LinearGradient>
+    </>
+  );
+}
