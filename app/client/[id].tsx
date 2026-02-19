@@ -59,6 +59,8 @@ export default function ClientDetailScreen() {
   const themeColors = isDark ? colors.dark : colors.light;
   const { width } = useWindowDimensions();
 
+  console.log('👤 ClientDetailScreen: Screen loaded for client ID:', id);
+
   const [client, setClient] = useState<ClientDetails | null>(null);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,55 +75,70 @@ export default function ClientDetailScreen() {
   const isSplitView = width >= 1024;
 
   const showError = (message: string) => {
+    console.error('❌ ClientDetailScreen: Error -', message);
     setErrorModal({ visible: true, message });
   };
 
   useEffect(() => {
-    console.log('ClientDetailScreen mounted for client:', id);
+    console.log('👤 ClientDetailScreen: useEffect triggered, loading data...');
     loadClientData();
   }, [id]);
 
   const loadClientData = async () => {
+    console.log('📥 ClientDetailScreen: Loading client data for ID:', id);
     try {
-      console.log('[API] Fetching client details and programs for id:', id);
       setLoading(true);
 
+      console.log('📤 ClientDetailScreen: GET request to:', `${BACKEND_URL}/api/clients/${id}`);
       const clientResponse = await fetch(`${BACKEND_URL}/api/clients/${id}`);
+      console.log('📥 ClientDetailScreen: Client response status:', clientResponse.status);
+
       if (!clientResponse.ok) {
         let errMsg = `Failed to load client (${clientResponse.status})`;
         try {
           const errBody = await clientResponse.json();
           errMsg = errBody.error || errMsg;
-        } catch { /* ignore */ }
+          console.error('❌ ClientDetailScreen: Error response:', errBody);
+        } catch (parseError) {
+          console.error('❌ ClientDetailScreen: Could not parse error response');
+        }
         throw new Error(errMsg);
       }
+
       const clientData: ClientDetails = await clientResponse.json();
-      console.log('[API] Client loaded:', clientData.name);
+      console.log('✅ ClientDetailScreen: Client loaded:', clientData.name);
       setClient(clientData);
 
+      console.log('📤 ClientDetailScreen: GET request to:', `${BACKEND_URL}/api/programs/client/${id}`);
       const programsResponse = await fetch(`${BACKEND_URL}/api/programs/client/${id}`);
+      console.log('📥 ClientDetailScreen: Programs response status:', programsResponse.status);
+
       if (!programsResponse.ok) {
-        console.warn('[API] Failed to load programs:', programsResponse.status);
+        console.warn('⚠️ ClientDetailScreen: Failed to load programs:', programsResponse.status);
         setPrograms([]);
       } else {
         const programsData: Program[] = await programsResponse.json();
-        console.log('[API] Programs loaded:', programsData.length);
+        console.log('✅ ClientDetailScreen: Programs loaded:', programsData.length);
         setPrograms(programsData);
       }
     } catch (error: any) {
-      console.error('Error loading client data:', error);
+      console.error('❌ ClientDetailScreen: Error loading client data:', error?.message || 'Unknown error');
+      console.error('❌ ClientDetailScreen: Full error:', error);
       showError(error?.message || 'Failed to load client data.');
     } finally {
       setLoading(false);
+      console.log('🏁 ClientDetailScreen: Load process completed');
     }
   };
 
   const handleGenerateProgram = async () => {
-    console.log('User tapped Generate Program button');
+    console.log('🚀 ClientDetailScreen: Generate Program button pressed');
+    console.log('📋 ClientDetailScreen: Generating program for client:', id);
 
     try {
       setGenerating(true);
-      console.log('[API] POST /api/programs/generate for client:', id);
+      console.log('📤 ClientDetailScreen: POST request to:', `${BACKEND_URL}/api/programs/generate`);
+      console.log('📦 ClientDetailScreen: Payload:', { client_id: id });
 
       const response = await fetch(`${BACKEND_URL}/api/programs/generate`, {
         method: 'POST',
@@ -129,56 +146,76 @@ export default function ClientDetailScreen() {
         body: JSON.stringify({ client_id: id }),
       });
 
+      console.log('📥 ClientDetailScreen: Generate response status:', response.status);
+
       if (!response.ok) {
         let errMsg = `Failed to generate program (${response.status})`;
         try {
           const errBody = await response.json();
           errMsg = errBody.error || errMsg;
-        } catch { /* ignore */ }
+          console.error('❌ ClientDetailScreen: Error response:', errBody);
+        } catch (parseError) {
+          console.error('❌ ClientDetailScreen: Could not parse error response');
+        }
         throw new Error(errMsg);
       }
 
       const result = await response.json();
-      console.log('Program generated successfully:', result.program_name);
+      console.log('✅ ClientDetailScreen: Program generated successfully:', result.program_name);
+      console.log('🔄 ClientDetailScreen: Reloading client data to show new program...');
 
       await loadClientData();
     } catch (error: any) {
-      console.error('Error generating program:', error);
+      console.error('❌ ClientDetailScreen: Error generating program:', error?.message || 'Unknown error');
+      console.error('❌ ClientDetailScreen: Full error:', error);
       showError(error?.message || 'Failed to generate program. Please try again.');
     } finally {
       setGenerating(false);
+      console.log('🏁 ClientDetailScreen: Generate process completed');
     }
   };
 
   const handleDeleteClient = async () => {
+    console.log('🗑️ ClientDetailScreen: Delete confirmed for client:', id);
     setDeleteModal(false);
+
     try {
-      console.log('[API] DELETE /api/clients/', id);
+      console.log('📤 ClientDetailScreen: DELETE request to:', `${BACKEND_URL}/api/clients/${id}`);
       const response = await fetch(`${BACKEND_URL}/api/clients/${id}`, {
         method: 'DELETE',
       });
+
+      console.log('📥 ClientDetailScreen: Delete response status:', response.status);
+
       if (!response.ok) {
         let errMsg = `Failed to delete client (${response.status})`;
         try {
           const errBody = await response.json();
           errMsg = errBody.error || errMsg;
-        } catch { /* ignore */ }
+          console.error('❌ ClientDetailScreen: Error response:', errBody);
+        } catch (parseError) {
+          console.error('❌ ClientDetailScreen: Could not parse error response');
+        }
         throw new Error(errMsg);
       }
-      console.log('Client deleted successfully');
+
+      console.log('✅ ClientDetailScreen: Client deleted successfully');
+      console.log('🔙 ClientDetailScreen: Navigating back to home');
       router.back();
     } catch (error: any) {
-      console.error('Error deleting client:', error);
+      console.error('❌ ClientDetailScreen: Error deleting client:', error?.message || 'Unknown error');
+      console.error('❌ ClientDetailScreen: Full error:', error);
       showError(error?.message || 'Failed to delete client.');
     }
   };
 
   const handleProgramPress = (programId: string) => {
-    console.log('User tapped program:', programId);
+    console.log('📋 ClientDetailScreen: User tapped program:', programId);
     router.push(`/program/${programId}`);
   };
 
   if (loading) {
+    console.log('⏳ ClientDetailScreen: Showing loading state...');
     return (
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         <Stack.Screen
@@ -199,6 +236,7 @@ export default function ClientDetailScreen() {
   }
 
   if (!client) {
+    console.log('❌ ClientDetailScreen: Client not found');
     return (
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         <Stack.Screen
@@ -219,6 +257,8 @@ export default function ClientDetailScreen() {
       </View>
     );
   }
+
+  console.log('✅ ClientDetailScreen: Rendering client details for:', client.name);
 
   const clientName = client.name;
   const clientAge = client.age.toString();
@@ -242,7 +282,10 @@ export default function ClientDetailScreen() {
           headerTintColor: themeColors.text,
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => setDeleteModal(true)}
+              onPress={() => {
+                console.log('🗑️ ClientDetailScreen: Delete button pressed');
+                setDeleteModal(true);
+              }}
               style={{ marginRight: spacing.sm }}
               activeOpacity={0.7}
             >
@@ -261,7 +304,10 @@ export default function ClientDetailScreen() {
         visible={errorModal.visible}
         transparent
         animationType="fade"
-        onRequestClose={() => setErrorModal({ visible: false, message: '' })}
+        onRequestClose={() => {
+          console.log('✅ ClientDetailScreen: Error modal dismissed');
+          setErrorModal({ visible: false, message: '' });
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
@@ -278,7 +324,10 @@ export default function ClientDetailScreen() {
               {errorModal.message}
             </Text>
             <TouchableOpacity
-              onPress={() => setErrorModal({ visible: false, message: '' })}
+              onPress={() => {
+                console.log('✅ ClientDetailScreen: Error modal dismissed');
+                setErrorModal({ visible: false, message: '' });
+              }}
               activeOpacity={0.8}
             >
               <LinearGradient
@@ -298,7 +347,10 @@ export default function ClientDetailScreen() {
         visible={deleteModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setDeleteModal(false)}
+        onRequestClose={() => {
+          console.log('❌ ClientDetailScreen: Delete modal cancelled');
+          setDeleteModal(false);
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
@@ -316,7 +368,10 @@ export default function ClientDetailScreen() {
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity
-                onPress={() => setDeleteModal(false)}
+                onPress={() => {
+                  console.log('❌ ClientDetailScreen: Delete cancelled');
+                  setDeleteModal(false);
+                }}
                 activeOpacity={0.8}
                 style={[styles.modalCancelButton, { borderColor: themeColors.border }]}
               >

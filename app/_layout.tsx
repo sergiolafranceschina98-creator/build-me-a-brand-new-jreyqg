@@ -32,22 +32,33 @@ export default function RootLayout() {
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
+  console.log('🚀 RootLayout: App initializing...');
+  console.log('🎨 RootLayout: Color scheme:', colorScheme);
+
   useEffect(() => {
     if (loaded) {
+      console.log('✅ RootLayout: Fonts loaded, hiding splash screen');
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
   React.useEffect(() => {
+    console.log('🌐 RootLayout: Network state:', {
+      isConnected: networkState.isConnected,
+      isInternetReachable: networkState.isInternetReachable,
+      type: networkState.type,
+    });
+
     if (
       !networkState.isConnected &&
       networkState.isInternetReachable === false
     ) {
-      console.log('🔌 Offline mode: Changes will be synced when back online');
+      console.log('🔌 RootLayout: Offline mode detected - Changes will be synced when back online');
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
 
   if (!loaded) {
+    console.log('⏳ RootLayout: Waiting for fonts to load...');
     return null;
   }
 
@@ -76,6 +87,8 @@ export default function RootLayout() {
       notification: "rgb(255, 127, 0)", // Orange notifications
     },
   };
+
+  console.log('✅ RootLayout: Rendering app with theme');
 
   return (
     <>

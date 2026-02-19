@@ -1,5 +1,8 @@
 
-import React, { useState } from 'react';
+import { useTheme } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, typography } from '@/styles/commonStyles';
+import Constants from 'expo-constants';
 import {
   View,
   Text,
@@ -11,28 +14,20 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { useTheme } from '@react-navigation/native';
+import React, { useState } from 'react';
 import { IconSymbol } from '@/components/IconSymbol';
-import { colors, spacing, typography } from '@/styles/commonStyles';
-import { LinearGradient } from 'expo-linear-gradient';
-import Constants from 'expo-constants';
+import { Stack, useRouter } from 'expo-router';
 
-const BACKEND_URL =
-  Constants.expoConfig?.extra?.backendUrl ||
-  'https://3v7m36dq7b8b7nhzwcy3b6cud7ap7qwr.app.specular.dev';
+const BACKEND_URL = Constants.expoConfig?.extra?.backendUrl;
 
 export default function NewClientScreen() {
-  const theme = useTheme();
   const router = useRouter();
+  const theme = useTheme();
   const isDark = theme.dark;
   const themeColors = isDark ? colors.dark : colors.light;
 
-  const [loading, setLoading] = useState(false);
-  const [errorModal, setErrorModal] = useState<{ visible: boolean; message: string }>({
-    visible: false,
-    message: '',
-  });
+  console.log('📝 NewClientScreen: Screen loaded');
+
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -41,95 +36,131 @@ export default function NewClientScreen() {
     weight: '',
     experience: 'beginner',
     goals: 'hypertrophy',
-    trainingFrequency: '3',
-    equipment: 'commercial gym',
+    trainingFrequency: '',
+    equipment: 'commercial_gym',
     injuries: '',
     preferredExercises: '',
-    sessionDuration: '60',
+    sessionDuration: '',
     bodyFatPercentage: '',
     squat1rm: '',
     bench1rm: '',
     deadlift1rm: '',
   });
 
+  const [loading, setLoading] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
   const showError = (message: string) => {
-    setErrorModal({ visible: true, message });
+    console.error('❌ NewClientScreen: Error -', message);
+    setErrorMessage(message);
+    setErrorModalVisible(true);
   };
 
   const handleInputChange = (field: string, value: string) => {
+    console.log(`📝 NewClientScreen: Field "${field}" changed to:`, value);
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async () => {
-    console.log('User tapped Create Client button');
-    console.log('Form data:', formData);
+    console.log('🚀 NewClientScreen: Submit button pressed');
+    console.log('📋 NewClientScreen: Form data:', formData);
 
-    if (!formData.name || !formData.age || !formData.height || !formData.weight) {
-      console.log('Validation failed: Missing required fields');
-      showError('Please fill in all required fields: Name, Age, Height, and Weight.');
+    // Validation
+    if (!formData.name.trim()) {
+      showError('Please enter client name');
+      return;
+    }
+    if (!formData.age || parseInt(formData.age) <= 0) {
+      showError('Please enter a valid age');
+      return;
+    }
+    if (!formData.height || parseFloat(formData.height) <= 0) {
+      showError('Please enter a valid height');
+      return;
+    }
+    if (!formData.weight || parseFloat(formData.weight) <= 0) {
+      showError('Please enter a valid weight');
+      return;
+    }
+    if (!formData.trainingFrequency || parseInt(formData.trainingFrequency) < 1 || parseInt(formData.trainingFrequency) > 7) {
+      showError('Training frequency must be between 1 and 7 days per week');
+      return;
+    }
+    if (!formData.sessionDuration || parseInt(formData.sessionDuration) <= 0) {
+      showError('Please enter a valid session duration');
       return;
     }
 
+    console.log('✅ NewClientScreen: Validation passed');
+    setLoading(true);
+
     try {
-      setLoading(true);
-      console.log('[API] POST /api/clients - Creating client...');
+      if (!BACKEND_URL) {
+        throw new Error('Backend URL not configured');
+      }
 
       const payload = {
-        name: formData.name,
-        age: parseInt(formData.age, 10),
+        name: formData.name.trim(),
+        age: parseInt(formData.age),
         gender: formData.gender,
-        height: parseInt(formData.height, 10),
-        weight: parseInt(formData.weight, 10),
+        height: parseFloat(formData.height),
+        weight: parseFloat(formData.weight),
         experience: formData.experience,
         goals: formData.goals,
-        trainingFrequency: parseInt(formData.trainingFrequency, 10),
+        trainingFrequency: parseInt(formData.trainingFrequency),
         equipment: formData.equipment,
-        injuries: formData.injuries || null,
-        preferredExercises: formData.preferredExercises || null,
-        sessionDuration: parseInt(formData.sessionDuration, 10),
-        bodyFatPercentage: formData.bodyFatPercentage
-          ? parseFloat(formData.bodyFatPercentage)
-          : null,
-        squat1rm: formData.squat1rm ? parseFloat(formData.squat1rm) : null,
-        bench1rm: formData.bench1rm ? parseFloat(formData.bench1rm) : null,
-        deadlift1rm: formData.deadlift1rm ? parseFloat(formData.deadlift1rm) : null,
+        injuries: formData.injuries.trim() || undefined,
+        preferredExercises: formData.preferredExercises.trim() || undefined,
+        sessionDuration: parseInt(formData.sessionDuration),
+        bodyFatPercentage: formData.bodyFatPercentage ? parseFloat(formData.bodyFatPercentage) : undefined,
+        squat1rm: formData.squat1rm ? parseFloat(formData.squat1rm) : undefined,
+        bench1rm: formData.bench1rm ? parseFloat(formData.bench1rm) : undefined,
+        deadlift1rm: formData.deadlift1rm ? parseFloat(formData.deadlift1rm) : undefined,
       };
 
-      console.log('[API] Payload:', JSON.stringify(payload));
+      console.log('📤 NewClientScreen: Sending POST request to:', `${BACKEND_URL}/api/clients`);
+      console.log('📦 NewClientScreen: Payload:', payload);
 
       const response = await fetch(`${BACKEND_URL}/api/clients`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify(payload),
       });
 
+      console.log('📥 NewClientScreen: Response status:', response.status);
+
       if (!response.ok) {
-        let errorMsg = `Failed to create client (${response.status})`;
+        let errMsg = `Failed to create client (${response.status})`;
         try {
           const errBody = await response.json();
-          errorMsg = errBody.error || errorMsg;
-        } catch {
-          // ignore
+          errMsg = errBody.error || errBody.message || errMsg;
+          console.error('❌ NewClientScreen: Error response:', errBody);
+        } catch (parseError) {
+          console.error('❌ NewClientScreen: Could not parse error response');
         }
-        throw new Error(errorMsg);
+        throw new Error(errMsg);
       }
 
       const newClient = await response.json();
-      console.log('Client created successfully:', newClient);
-
+      console.log('✅ NewClientScreen: Client created successfully:', newClient);
+      console.log('🔙 NewClientScreen: Navigating back to home');
       router.back();
     } catch (error: any) {
-      console.error('Error creating client:', error);
+      console.error('❌ NewClientScreen: Error creating client:', error?.message || 'Unknown error');
+      console.error('❌ NewClientScreen: Full error:', error);
       showError(error?.message || 'Failed to create client. Please try again.');
     } finally {
       setLoading(false);
+      console.log('🏁 NewClientScreen: Submit process completed');
     }
   };
 
   const renderSectionHeader = (title: string) => (
-    <Text style={[styles.sectionHeader, { color: themeColors.text }]}>
-      {title}
-    </Text>
+    <Text style={[styles.sectionHeader, { color: themeColors.text }]}>{title}</Text>
   );
 
   const renderInput = (
@@ -139,22 +170,13 @@ export default function NewClientScreen() {
     keyboardType: 'default' | 'numeric' | 'email-address' = 'default'
   ) => (
     <View style={styles.inputContainer}>
-      <Text style={[styles.label, { color: themeColors.textSecondary }]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, { color: themeColors.textSecondary }]}>{label}</Text>
       <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: themeColors.card,
-            color: themeColors.text,
-            borderColor: themeColors.border,
-          },
-        ]}
-        value={formData[field as keyof typeof formData]}
-        onChangeText={(value) => handleInputChange(field, value)}
+        style={[styles.input, { backgroundColor: themeColors.card, color: themeColors.text, borderColor: themeColors.border }]}
         placeholder={placeholder}
         placeholderTextColor={themeColors.textSecondary + '80'}
+        value={formData[field as keyof typeof formData]}
+        onChangeText={(value) => handleInputChange(field, value)}
         keyboardType={keyboardType}
       />
     </View>
@@ -162,48 +184,41 @@ export default function NewClientScreen() {
 
   const renderPicker = (label: string, field: string, options: { label: string; value: string }[]) => (
     <View style={styles.inputContainer}>
-      <Text style={[styles.label, { color: themeColors.textSecondary }]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, { color: themeColors.textSecondary }]}>{label}</Text>
       <View style={styles.pickerContainer}>
-        {options.map((option, index) => {
-          const isSelected = formData[field as keyof typeof formData] === option.value;
-          return (
-            <TouchableOpacity
-              key={index}
-              onPress={() => handleInputChange(field, option.value)}
-              activeOpacity={0.7}
+        {options.map((option) => (
+          <TouchableOpacity
+            key={option.value}
+            style={[
+              styles.pickerOption,
+              {
+                backgroundColor: formData[field as keyof typeof formData] === option.value
+                  ? themeColors.primary + '20'
+                  : themeColors.card,
+                borderColor: formData[field as keyof typeof formData] === option.value
+                  ? themeColors.primary
+                  : themeColors.border,
+              },
+            ]}
+            onPress={() => {
+              console.log(`📝 NewClientScreen: Picker "${field}" selected:`, option.value);
+              handleInputChange(field, option.value);
+            }}
+          >
+            <Text
+              style={[
+                styles.pickerOptionText,
+                {
+                  color: formData[field as keyof typeof formData] === option.value
+                    ? themeColors.primary
+                    : themeColors.text,
+                },
+              ]}
             >
-              {isSelected ? (
-                <LinearGradient
-                  colors={[themeColors.primary, themeColors.secondary]}
-                  style={styles.pickerOption}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.pickerOptionTextSelected}>
-                    {option.label}
-                  </Text>
-                </LinearGradient>
-              ) : (
-                <View
-                  style={[
-                    styles.pickerOption,
-                    {
-                      backgroundColor: themeColors.card,
-                      borderColor: themeColors.border,
-                      borderWidth: 1,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.pickerOptionText, { color: themeColors.text }]}>
-                    {option.label}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -218,134 +233,62 @@ export default function NewClientScreen() {
             backgroundColor: themeColors.background,
           },
           headerTintColor: themeColors.text,
-          headerShadowVisible: false,
         }}
       />
 
-      {/* Error Modal */}
-      <Modal
-        visible={errorModal.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setErrorModal({ visible: false, message: '' })}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
-            <View style={[styles.modalIconCircle, { backgroundColor: themeColors.error + '20' }]}>
-              <IconSymbol
-                ios_icon_name="exclamationmark.triangle.fill"
-                android_material_icon_name="error"
-                size={28}
-                color={themeColors.error}
-              />
-            </View>
-            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Error</Text>
-            <Text style={[styles.modalMessage, { color: themeColors.textSecondary }]}>
-              {errorModal.message}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setErrorModal({ visible: false, message: '' })}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[themeColors.primary, themeColors.secondary]}
-                style={styles.modalButton}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.modalButtonText}>OK</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {renderSectionHeader('Basic Information')}
-        {renderInput('Full Name', 'name', 'John Doe')}
-        {renderInput('Age', 'age', '25', 'numeric')}
-        
+        {renderInput('Full Name *', 'name', 'John Doe')}
+        {renderInput('Age *', 'age', '25', 'numeric')}
         {renderPicker('Gender', 'gender', [
           { label: 'Male', value: 'male' },
           { label: 'Female', value: 'female' },
           { label: 'Other', value: 'other' },
         ])}
+        {renderInput('Height (cm) *', 'height', '175', 'numeric')}
+        {renderInput('Weight (kg) *', 'weight', '70', 'numeric')}
 
-        <View style={styles.row}>
-          <View style={styles.halfWidth}>
-            {renderInput('Height (cm)', 'height', '175', 'numeric')}
-          </View>
-          <View style={styles.halfWidth}>
-            {renderInput('Weight (kg)', 'weight', '75', 'numeric')}
-          </View>
-        </View>
-
-        {renderSectionHeader('Training Profile')}
-        
+        {renderSectionHeader('Training Details')}
         {renderPicker('Experience Level', 'experience', [
           { label: 'Beginner', value: 'beginner' },
           { label: 'Intermediate', value: 'intermediate' },
           { label: 'Advanced', value: 'advanced' },
         ])}
-
         {renderPicker('Primary Goal', 'goals', [
-          { label: 'Fat Loss', value: 'fat loss' },
-          { label: 'Hypertrophy', value: 'hypertrophy' },
+          { label: 'Fat Loss', value: 'fat_loss' },
+          { label: 'Muscle Growth', value: 'hypertrophy' },
           { label: 'Strength', value: 'strength' },
-          { label: 'Rehab', value: 'rehab' },
+          { label: 'Rehabilitation', value: 'rehab' },
+          { label: 'Sport-Specific', value: 'sport_specific' },
         ])}
-
-        {renderPicker('Training Frequency (days/week)', 'trainingFrequency', [
-          { label: '2', value: '2' },
-          { label: '3', value: '3' },
-          { label: '4', value: '4' },
-          { label: '5', value: '5' },
-          { label: '6', value: '6' },
-        ])}
-
-        {renderPicker('Session Duration', 'sessionDuration', [
-          { label: '45 min', value: '45' },
-          { label: '60 min', value: '60' },
-          { label: '90 min', value: '90' },
-        ])}
-
+        {renderInput('Training Days/Week *', 'trainingFrequency', '3', 'numeric')}
+        {renderInput('Session Duration (min) *', 'sessionDuration', '60', 'numeric')}
         {renderPicker('Available Equipment', 'equipment', [
-          { label: 'Commercial Gym', value: 'commercial gym' },
-          { label: 'Home Gym', value: 'home gym' },
-          { label: 'Dumbbells Only', value: 'dumbbells only' },
-          { label: 'Bodyweight', value: 'bodyweight' },
+          { label: 'Commercial Gym', value: 'commercial_gym' },
+          { label: 'Home Gym', value: 'home_gym' },
+          { label: 'Dumbbells Only', value: 'dumbbells_only' },
+          { label: 'Bodyweight Only', value: 'bodyweight_only' },
         ])}
 
         {renderSectionHeader('Additional Information (Optional)')}
-        {renderInput('Injuries or Limitations', 'injuries', 'e.g., Lower back pain')}
+        {renderInput('Injuries/Limitations', 'injuries', 'e.g., Lower back pain')}
         {renderInput('Preferred Exercises', 'preferredExercises', 'e.g., Squats, Deadlifts')}
         {renderInput('Body Fat %', 'bodyFatPercentage', '15', 'numeric')}
 
         {renderSectionHeader('Personal Records (Optional)')}
-        <View style={styles.row}>
-          <View style={styles.thirdWidth}>
-            {renderInput('Squat 1RM', 'squat1rm', '100', 'numeric')}
-          </View>
-          <View style={styles.thirdWidth}>
-            {renderInput('Bench 1RM', 'bench1rm', '80', 'numeric')}
-          </View>
-          <View style={styles.thirdWidth}>
-            {renderInput('Deadlift 1RM', 'deadlift1rm', '120', 'numeric')}
-          </View>
-        </View>
+        {renderInput('Squat 1RM (kg)', 'squat1rm', '100', 'numeric')}
+        {renderInput('Bench Press 1RM (kg)', 'bench1rm', '80', 'numeric')}
+        {renderInput('Deadlift 1RM (kg)', 'deadlift1rm', '120', 'numeric')}
 
         <TouchableOpacity
+          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           disabled={loading}
-          activeOpacity={0.9}
+          activeOpacity={0.8}
         >
           <LinearGradient
-            colors={[themeColors.primary, themeColors.secondary]}
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            colors={loading ? [themeColors.border, themeColors.border] : [themeColors.primary, themeColors.secondary]}
+            style={styles.submitButtonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
@@ -357,6 +300,40 @@ export default function NewClientScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={errorModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setErrorModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.card }]}>
+            <IconSymbol
+              ios_icon_name="exclamationmark.triangle.fill"
+              android_material_icon_name="warning"
+              size={48}
+              color={themeColors.primary}
+            />
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Error</Text>
+            <Text style={[styles.modalMessage, { color: themeColors.textSecondary }]}>{errorMessage}</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                console.log('✅ NewClientScreen: Error modal dismissed');
+                setErrorModalVisible(false);
+              }}
+            >
+              <LinearGradient
+                colors={[themeColors.primary, themeColors.secondary]}
+                style={styles.modalButtonGradient}
+              >
+                <Text style={styles.modalButtonText}>OK</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -369,14 +346,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: spacing.lg,
+    paddingBottom: 100,
   },
   sectionHeader: {
     ...typography.h3,
     marginTop: spacing.lg,
     marginBottom: spacing.md,
-    letterSpacing: -0.3,
   },
   inputContainer: {
     marginBottom: spacing.md,
@@ -385,18 +361,12 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     marginBottom: spacing.xs,
     fontWeight: '600',
-    letterSpacing: 0.2,
   },
   input: {
-    borderRadius: 12,
+    ...typography.body,
     padding: spacing.md,
-    fontSize: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -404,83 +374,51 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   pickerOption: {
-    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    borderRadius: 12,
+    borderWidth: 2,
   },
   pickerOptionText: {
     ...typography.bodySmall,
     fontWeight: '600',
   },
-  pickerOptionTextSelected: {
-    ...typography.bodySmall,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  halfWidth: {
-    flex: 1,
-  },
-  thirdWidth: {
-    flex: 1,
-  },
   submitButton: {
+    marginTop: spacing.xl,
     borderRadius: 16,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.lg,
-    height: 56,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    overflow: 'hidden',
   },
   submitButtonDisabled: {
     opacity: 0.6,
   },
+  submitButtonGradient: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   submitButtonText: {
+    ...typography.h3,
     color: '#FFFFFF',
-    fontSize: 18,
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.lg,
-  },
-  modalContainer: {
-    width: '100%',
-    maxWidth: 360,
-    borderRadius: 20,
     padding: spacing.xl,
-    alignItems: 'center',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    elevation: 20,
   },
-  modalIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    padding: spacing.xl,
+    borderRadius: 24,
     alignItems: 'center',
-    marginBottom: spacing.md,
   },
   modalTitle: {
-    ...typography.h3,
+    ...typography.h2,
+    marginTop: spacing.md,
     marginBottom: spacing.sm,
-    textAlign: 'center',
   },
   modalMessage: {
     ...typography.body,
@@ -488,15 +426,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   modalButton: {
+    width: '100%',
     borderRadius: 12,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xl,
-    minWidth: 120,
+    overflow: 'hidden',
+  },
+  modalButtonGradient: {
+    paddingVertical: spacing.md,
     alignItems: 'center',
   },
   modalButtonText: {
+    ...typography.body,
     color: '#FFFFFF',
-    fontSize: 16,
     fontWeight: '700',
   },
 });
